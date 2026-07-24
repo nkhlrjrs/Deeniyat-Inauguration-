@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import ShinyText from './ShinyText';
 
 const ROTATING_WORDS = ['Governance', 'Education', 'Administration', 'Communication', 'Collaboration'];
 
@@ -12,13 +13,52 @@ const LONGEST_WORD = ROTATING_WORDS.reduce((a, b) => (a.length > b.length ? a : 
 
 export default function Hero() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [currentWord, setCurrentWord] = useState('');
   const [visibleLetters, setVisibleLetters] = useState<Set<number>>(new Set());
   const [phase, setPhase] = useState<'in' | 'display' | 'out'>('in');
   const animationRef = useRef<number | null>(null);
 
+  // Initial load animation states
+  const [initialAnimDone, setInitialAnimDone] = useState(false);
+  const [line1Visible, setLine1Visible] = useState<Set<number>>(new Set());
+  const [line2Visible, setLine2Visible] = useState<Set<number>>(new Set());
+  const [buttonVisible, setButtonVisible] = useState(false);
+
   useEffect(() => {
+    // Initial page load animation
+    const runInitialAnimation = async () => {
+      // Animate LINE 1
+      const line1Indices = Array.from({ length: TEXT_LINE_1.length }, (_, i) => i);
+      const line1Shuffled = shuffleArray([...line1Indices]);
+      for (let i = 0; i < line1Shuffled.length; i++) {
+        await delay(50 + Math.random() * 30);
+        setLine1Visible(prev => new Set([...prev, line1Shuffled[i]]));
+      }
+
+      // Small pause before line 2
+      await delay(300);
+
+      // Animate LINE 2
+      const line2Indices = Array.from({ length: TEXT_LINE_2_PART_1.length }, (_, i) => i);
+      const line2Shuffled = shuffleArray([...line2Indices]);
+      for (let i = 0; i < line2Shuffled.length; i++) {
+        await delay(50 + Math.random() * 30);
+        setLine2Visible(prev => new Set([...prev, line2Shuffled[i]]));
+      }
+
+      // Show button after text
+      await delay(200);
+      setButtonVisible(true);
+      setInitialAnimDone(true);
+    };
+
+    runInitialAnimation();
+  }, []);
+
+  useEffect(() => {
+    // Only start rotating word animation after initial animation is done
+    if (!initialAnimDone) return;
+
     const targetWord = ROTATING_WORDS[currentWordIndex];
     setCurrentWord(targetWord);
 
@@ -66,7 +106,7 @@ export default function Hero() {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [currentWordIndex]);
+  }, [currentWordIndex, initialAnimDone]);
 
   return (
     <section className="relative h-screen w-full overflow-hidden flex items-end justify-center pb-32">
@@ -84,15 +124,35 @@ export default function Hero() {
       {/* Dark Overlay for better text readability */}
       <div className="absolute inset-0 bg-black/40" />
 
-      {/* White Gradient Overlay - bottom to top */}
-      <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+      {/* Black Gradient Overlay - bottom to top */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-white mb-12 leading-tight">
-          <div className="whitespace-nowrap">{TEXT_LINE_1}</div>
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-white mb-12 leading-tight">
+          {/* Line 1 with animation */}
+          <div className="whitespace-nowrap">
+            {TEXT_LINE_1.split('').map((letter, index) => (
+              <AnimatedLetter
+                key={`line1-${index}`}
+                letter={letter}
+                isVisible={line1Visible.has(index)}
+                delay={0}
+              />
+            ))}
+          </div>
+          {/* Line 2 with animation */}
           <div className="whitespace-nowrap flex items-center justify-center gap-2">
-            <span>{TEXT_LINE_2_PART_1}</span>
+            <span>
+              {TEXT_LINE_2_PART_1.split('').map((letter, index) => (
+                <AnimatedLetter
+                  key={`line2-${index}`}
+                  letter={letter}
+                  isVisible={line2Visible.has(index)}
+                  delay={0}
+                />
+              ))}
+            </span>
             <span className="inline-block w-[270px] md:w-[320px] text-left">
               {currentWord.split('').map((letter, index) => (
                 <AnimatedLetter
@@ -107,10 +167,22 @@ export default function Hero() {
         </h1>
 
         {/* CTA Button */}
-        <button className="group relative px-8 py-4 bg-white text-black font-semibold text-lg rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-white/20">
-          <span className="relative z-10">Begin the Experience</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-white via-gray-100 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <div className="absolute inset-0 bg-white/50 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-0" />
+        <button className={`group relative px-8 py-4 bg-white/10 backdrop-blur-md border border-white font-light text-lg rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-white/20 ${buttonVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+          <span className="relative z-10 flex items-center gap-3 text-white">
+            <ShinyText
+              text="Begin the Experience"
+              speed={3}
+              color="#ffffff"
+              shineColor="#ffffff"
+              spread={120}
+              direction="right"
+            />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </span>
+          <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/10 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-white/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-0" />
         </button>
       </div>
     </section>
