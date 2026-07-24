@@ -167,14 +167,28 @@ export default function Hero() {
         </h1>
 
         {/* CTA Button */}
-        <button className={`group relative px-8 py-4 bg-white/10 backdrop-blur-md border border-white font-light text-lg rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-white/20 ${buttonVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-          <span className="relative z-10 flex items-center gap-3 text-white">
+        <button className={`group relative px-8 py-4 bg-white/10 backdrop-blur-md border border-white/30 font-light text-lg rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-white/20 ${buttonVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} gradient-border-button`}>
+          {/* Gradient Border */}
+          <div className="gradient-border" />
+          {/* Starfield Effect - Sparkling dots inside button */}
+          <span className="starfield absolute inset-0 pointer-events-none z-0">
+            <span className="star" style={{ '--x': '10%', '--y': '15%', '--delay': '0s' } as React.CSSProperties} />
+            <span className="star" style={{ '--x': '85%', '--y': '20%', '--delay': '0.5s' } as React.CSSProperties} />
+            <span className="star" style={{ '--x': '25%', '--y': '70%', '--delay': '1s' } as React.CSSProperties} />
+            <span className="star" style={{ '--x': '75%', '--y': '75%', '--delay': '1.5s' } as React.CSSProperties} />
+            <span className="star" style={{ '--x': '45%', '--y': '30%', '--delay': '2s' } as React.CSSProperties} />
+            <span className="star" style={{ '--x': '60%', '--y': '60%', '--delay': '0.3s' } as React.CSSProperties} />
+            <span className="star" style={{ '--x': '15%', '--y': '45%', '--delay': '0.8s' } as React.CSSProperties} />
+            <span className="star" style={{ '--x': '90%', '--y': '50%', '--delay': '1.3s' } as React.CSSProperties} />
+          </span>
+
+          <span className="relative z-10 flex items-center gap-3 text-white uppercase">
             <ShinyText
               text="Begin the Experience"
-              speed={3}
-              color="#ffffff"
+              speed={2.5}
+              color="#e0e0e0"
               shineColor="#ffffff"
-              spread={120}
+              spread={150}
               direction="right"
             />
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
