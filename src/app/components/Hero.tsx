@@ -127,6 +127,9 @@ export default function Hero() {
       {/* Black Gradient Overlay - bottom to top */}
       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
 
+      {/* Grid Lines Overlay */}
+      <div className="grid-lines" />
+
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-white mb-12 leading-tight">

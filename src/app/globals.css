@@ -91,3 +91,16 @@ body {
     background-position: 0% 50%;
   }
 }
+
+/* Grid Lines Overlay */
+.grid-lines {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse at center, transparent 40%, black 85%);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 40%, black 85%);
+}
