@@ -64,8 +64,13 @@ const CAP_LAST_STEP = 7; // last capability frame step (2 = ecosystem, 3..7 = ca
 
 // Section 5 (Progress statement) — step 8, dark charcoal with animated blueprint grid
 const PROGRESS_STEP = 8;
-// Section 6 (Developer / build) — step 9, dark with golden-ratio blueprint geometry
-const DEV_STEP = 9; // bodyIndex clamp ceiling
+// Technology partner — step 9, left text swaps within the "Built for Deeniyath" section
+const PARTNER_STEP = 9;
+const PARTNER_HEAD = 'Technology Partner';
+const PARTNER_BODY =
+  'Developed in partnership with Techno Alliance, bringing nearly three decades of experience, a visionary legacy, and proven expertise in technology and educational solutions.';
+// Section 6 (Developer / build) — step 10, dark with golden-ratio blueprint geometry
+const DEV_STEP = 10;
 const DEV_LABEL = 'PARTICIPATION';
 const DEV_BODY =
   'The people who manage institutions and teach students every day understand the practical needs of Deeniyath best. As the platform develops, feedback from management teams, Muallims and other stakeholders will help us understand existing challenges and identify opportunities for improvement.';
@@ -97,7 +102,7 @@ const DEV_TICKS = [
 ];
 
 // Section 7 (Scale / vision) — step 10, isometric circuit cube; seamless shift from Section 6
-const NEXT_STEP = 10; // new bodyIndex clamp ceiling
+const NEXT_STEP = 11; // bodyIndex clamp ceiling
 const S7_LABEL = 'A New Digital Journey Begins';
 const S7_BODY =
   'Technology will continue to evolve. Our purpose remains the same — supporting education, institutions and the people who serve them.';
@@ -446,9 +451,11 @@ export default function Hero() {
   const capFrame = Math.min(CAP_FRAMES.length - 1, Math.max(0, bodyIndex - 3));
   // Progress statement (step 8) — charcoal overlay sits above the white capabilities layer
   const inProgress = bodyIndex >= PROGRESS_STEP;
-  // Developer/build section (step 9) — dark golden-ratio overlay above the progress layer
+  // Technology partner (step 9) — left text swaps within the progress layer
+  const inPartner = bodyIndex >= PARTNER_STEP;
+  // Developer/build section (step 10) — dark golden-ratio overlay above the progress layer
   const inDev = bodyIndex >= DEV_STEP;
-  // Scale/vision section (step 10) — isometric cube overlay above the developer layer
+  // Scale/vision section (step 11) — isometric cube overlay above the developer layer
   const inNext = bodyIndex >= NEXT_STEP;
 
   // Handle transition to Section 2
@@ -1048,15 +1055,16 @@ export default function Hero() {
             </p>
           </div>
 
-          {/* Center-left headline + body, left-aligned — blur → focus, fade, rise */}
+          {/* Center-left headline + body, left-aligned — blur → focus, fade, rise. Fades out on the partner step. */}
           <div
             className="absolute left-0 top-[68%] -translate-y-1/2 max-w-[38rem] pl-12 md:pl-20"
             style={{
-              opacity: inProgress ? 1 : 0,
-              filter: inProgress ? 'blur(0px)' : 'blur(10px)',
-              transform: inProgress
-                ? 'translateY(-50%) translateX(0)'
-                : 'translateY(-50%) translateX(-24px)',
+              opacity: inProgress && !inPartner ? 1 : 0,
+              filter: inProgress && !inPartner ? 'blur(0px)' : 'blur(10px)',
+              transform:
+                inProgress && !inPartner
+                  ? 'translateY(-50%) translateX(0)'
+                  : 'translateY(-50%) translateX(-24px)',
               transition:
                 'opacity 700ms ease 400ms, filter 700ms ease 400ms, transform 800ms cubic-bezier(0.22,1,0.36,1) 400ms',
             }}
@@ -1080,6 +1088,44 @@ export default function Hero() {
               organizational structure, academic practices and the practical
               workflows of institutions and Muallims.
             </p>
+          </div>
+
+          {/* Technology Partner (step 9) — crossfades in over the "Designed…" block */}
+          <div
+            className="absolute left-0 top-[66%] -translate-y-1/2 max-w-[40rem] pl-12 md:pl-20"
+            style={{
+              opacity: inPartner ? 1 : 0,
+              filter: inPartner ? 'blur(0px)' : 'blur(10px)',
+              transform: inPartner
+                ? 'translateY(-50%) translateX(0)'
+                : 'translateY(-50%) translateX(-24px)',
+              transition:
+                'opacity 700ms ease 250ms, filter 700ms ease 250ms, transform 800ms cubic-bezier(0.22,1,0.36,1) 250ms',
+              pointerEvents: inPartner ? 'auto' : 'none',
+            }}
+          >
+            <h3
+              className="text-left font-light tracking-tight text-white"
+              style={{ fontSize: 'clamp(1.5rem, 2.8vw, 2.6rem)', lineHeight: 1.15 }}
+            >
+              {PARTNER_HEAD}
+            </h3>
+            <p
+              className="mt-5 text-left font-light"
+              style={{
+                fontSize: 'clamp(0.9rem, 1.1vw, 1.1rem)',
+                lineHeight: 1.6,
+                color: 'rgba(255,255,255,0.55)',
+              }}
+            >
+              {PARTNER_BODY}
+            </p>
+            <img
+              src="/techno%20alliance%20logo.png"
+              alt="Techno Alliance"
+              className="mt-8 w-auto"
+              style={{ height: 'clamp(2.75rem, 4.5vw, 4rem)' }}
+            />
           </div>
         </div>
       )}
@@ -1275,15 +1321,158 @@ export default function Hero() {
             transition: 'opacity 800ms ease',
           }}
         >
-          {/* Green base + soft glow behind the cube (matches the rest of the deck) */}
+          {/* Green base */}
           <div className="absolute inset-0" style={{ backgroundColor: '#0A1811' }} />
+
+          {/* Animated blueprint grid — same as the "Built for Deeniyath" section */}
           <div
             className="absolute inset-0"
             style={{
-              background:
-                'radial-gradient(circle at 66% 42%, rgba(16,185,129,0.16), transparent 45%)',
+              backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.14) 1.2px, transparent 1.4px)',
+              backgroundSize: `${PG_CELL}px ${PG_CELL}px`,
+              backgroundPosition: 'right top',
+              maskImage: 'radial-gradient(ellipse at center, transparent 30%, black 78%)',
+              WebkitMaskImage: 'radial-gradient(ellipse at center, transparent 30%, black 78%)',
             }}
           />
+          <div
+            className="absolute right-0 top-0 h-full overflow-hidden"
+            style={{
+              width: `${(PG_V_LINES - 1) * PG_CELL + 2}px`,
+              maskImage:
+                'radial-gradient(ellipse at center, transparent 25%, black 78%), linear-gradient(to right, transparent 0%, black 35%)',
+              WebkitMaskImage:
+                'radial-gradient(ellipse at center, transparent 25%, black 78%), linear-gradient(to right, transparent 0%, black 35%)',
+              maskComposite: 'intersect',
+              WebkitMaskComposite: 'source-in',
+            }}
+          >
+            {Array.from({ length: PG_V_LINES }).map((_, c) => (
+              <div
+                key={`s7v-${c}`}
+                className="absolute top-0 bottom-0"
+                style={{
+                  right: `${c * PG_CELL}px`,
+                  borderLeft: '1px dashed rgba(255,255,255,0.10)',
+                  transformOrigin: 'top',
+                  transform: inNext ? 'scaleY(1)' : 'scaleY(0)',
+                  opacity: inNext ? 1 : 0,
+                  transition: `transform 750ms cubic-bezier(0.22,1,0.36,1) ${c * 45}ms, opacity 500ms ease ${c * 45}ms`,
+                }}
+              />
+            ))}
+            {Array.from({ length: PG_H_LINES }).map((_, r) => (
+              <div
+                key={`s7h-${r}`}
+                className="absolute left-0 right-0"
+                style={{
+                  top: `${r * PG_CELL}px`,
+                  borderTop: '1px dashed rgba(255,255,255,0.10)',
+                  transformOrigin: 'right',
+                  transform: inNext ? 'scaleX(1)' : 'scaleX(0)',
+                  opacity: inNext ? 1 : 0,
+                  transition: `transform 750ms cubic-bezier(0.22,1,0.36,1) ${r * 45}ms, opacity 500ms ease ${r * 45}ms`,
+                }}
+              />
+            ))}
+            {PG_BLUE.map((b, i) => {
+              const dist = 2.5 * PG_CELL;
+              const dur = 2400 + ((i * 313) % 2000);
+              const delay = (i * 517) % 4200;
+              return (
+                <div
+                  key={`s7b-${i}`}
+                  className="absolute"
+                  style={{
+                    right: `${b.c * PG_CELL}px`,
+                    top: `${b.r * PG_CELL}px`,
+                    width: b.d === 'h' ? `${PG_CELL}px` : '1.5px',
+                    height: b.d === 'h' ? '1.5px' : `${PG_CELL}px`,
+                    background:
+                      b.d === 'h'
+                        ? 'linear-gradient(90deg, rgba(110,231,183,0.3), rgba(16,185,129,0.3) 45%, rgba(16,185,129,0))'
+                        : 'linear-gradient(180deg, rgba(110,231,183,0.3), rgba(16,185,129,0.3) 45%, rgba(16,185,129,0))',
+                    boxShadow: '0 0 8px rgba(16,185,129,0.18)',
+                    opacity: 0,
+                    '--pg-dx': b.d === 'h' ? `-${dist}px` : '0px',
+                    '--pg-dy': b.d === 'v' ? `-${dist}px` : '0px',
+                    animation: `pg-comet ${dur}ms linear ${delay}ms infinite`,
+                    animationPlayState: inNext ? 'running' : 'paused',
+                  } as React.CSSProperties}
+                />
+              );
+            })}
+          </div>
+
+          {/* Bottom-left mirrored blueprint grid — same draw-in animation */}
+          <div
+            className="absolute left-0 bottom-0 h-full overflow-hidden"
+            style={{
+              width: `${(PG_V_LINES - 1) * PG_CELL + 2}px`,
+              maskImage:
+                'radial-gradient(ellipse at center, transparent 25%, black 78%), linear-gradient(to left, transparent 0%, black 35%)',
+              WebkitMaskImage:
+                'radial-gradient(ellipse at center, transparent 25%, black 78%), linear-gradient(to left, transparent 0%, black 35%)',
+              maskComposite: 'intersect',
+              WebkitMaskComposite: 'source-in',
+            }}
+          >
+            {Array.from({ length: PG_V_LINES }).map((_, c) => (
+              <div
+                key={`s7lv-${c}`}
+                className="absolute top-0 bottom-0"
+                style={{
+                  left: `${c * PG_CELL}px`,
+                  borderLeft: '1px dashed rgba(255,255,255,0.10)',
+                  transformOrigin: 'bottom',
+                  transform: inNext ? 'scaleY(1)' : 'scaleY(0)',
+                  opacity: inNext ? 1 : 0,
+                  transition: `transform 750ms cubic-bezier(0.22,1,0.36,1) ${c * 45}ms, opacity 500ms ease ${c * 45}ms`,
+                }}
+              />
+            ))}
+            {Array.from({ length: PG_H_LINES }).map((_, r) => (
+              <div
+                key={`s7lh-${r}`}
+                className="absolute left-0 right-0"
+                style={{
+                  bottom: `${r * PG_CELL}px`,
+                  borderTop: '1px dashed rgba(255,255,255,0.10)',
+                  transformOrigin: 'left',
+                  transform: inNext ? 'scaleX(1)' : 'scaleX(0)',
+                  opacity: inNext ? 1 : 0,
+                  transition: `transform 750ms cubic-bezier(0.22,1,0.36,1) ${r * 45}ms, opacity 500ms ease ${r * 45}ms`,
+                }}
+              />
+            ))}
+            {PG_BLUE.map((b, i) => {
+              const dist = 2.5 * PG_CELL;
+              const dur = 2400 + ((i * 313) % 2000);
+              const delay = (i * 517) % 4200;
+              return (
+                <div
+                  key={`s7lb-${i}`}
+                  className="absolute"
+                  style={{
+                    left: `${b.c * PG_CELL}px`,
+                    bottom: `${b.r * PG_CELL}px`,
+                    width: b.d === 'h' ? `${PG_CELL}px` : '1.5px',
+                    height: b.d === 'h' ? '1.5px' : `${PG_CELL}px`,
+                    background:
+                      b.d === 'h'
+                        ? 'linear-gradient(90deg, rgba(16,185,129,0), rgba(16,185,129,0.3) 55%, rgba(110,231,183,0.3))'
+                        : 'linear-gradient(180deg, rgba(16,185,129,0), rgba(16,185,129,0.3) 55%, rgba(110,231,183,0.3))',
+                    boxShadow: '0 0 8px rgba(16,185,129,0.18)',
+                    opacity: 0,
+                    '--pg-dx': b.d === 'h' ? `${dist}px` : '0px',
+                    '--pg-dy': b.d === 'v' ? `${dist}px` : '0px',
+                    animation: `pg-comet ${dur}ms linear ${delay}ms infinite`,
+                    animationPlayState: inNext ? 'running' : 'paused',
+                  } as React.CSSProperties}
+                />
+              );
+            })}
+          </div>
 
           {/* Isometric nested circuit cube */}
           <svg
@@ -1312,25 +1501,25 @@ export default function Hero() {
             {/* Outer cube faces */}
             <polygon
               points={polyPts(S7_CUBE.faces.top)}
-              fill="rgba(80,140,220,0.05)"
-              stroke="rgba(130,185,255,0.30)"
+              fill="rgba(16,185,129,0.05)"
+              stroke="rgba(110,231,183,0.30)"
               strokeWidth="1.4"
             />
             <polygon
               points={polyPts(S7_CUBE.faces.left)}
-              fill="rgba(40,90,170,0.07)"
-              stroke="rgba(130,185,255,0.20)"
+              fill="rgba(16,185,129,0.07)"
+              stroke="rgba(110,231,183,0.20)"
               strokeWidth="1.4"
             />
             <polygon
               points={polyPts(S7_CUBE.faces.right)}
-              fill="rgba(30,70,140,0.11)"
-              stroke="rgba(130,185,255,0.20)"
+              fill="rgba(16,185,129,0.11)"
+              stroke="rgba(110,231,183,0.20)"
               strokeWidth="1.4"
             />
 
             {/* Inner cube edges */}
-            <g stroke="rgba(150,195,255,0.38)" strokeWidth="1" fill="none">
+            <g stroke="rgba(110,231,183,0.38)" strokeWidth="1" fill="none">
               {S7_CUBE.edges.map(([a, b], i) => (
                 <line
                   key={`ie-${i}`}
@@ -1343,7 +1532,7 @@ export default function Hero() {
             </g>
 
             {/* Connectors outer → inner (circuit "energy" lines) */}
-            <g stroke="rgba(120,170,255,0.18)" strokeWidth="1" fill="none">
+            <g stroke="rgba(110,231,183,0.18)" strokeWidth="1" fill="none">
               {S7_CUBE.nodeIdx.map((idx, i) => (
                 <line
                   key={`cn-${i}`}
@@ -1374,7 +1563,7 @@ export default function Hero() {
                   cx={S7_CUBE.inner[idx][0]}
                   cy={S7_CUBE.inner[idx][1]}
                   r="2.8"
-                  fill={i % 2 === 0 ? '#f59e0b' : '#38bdf8'}
+                  fill={i % 2 === 0 ? '#f59e0b' : '#34d399'}
                 />
               ))}
               {S7_CUBE.nodeIdx.map((idx, i) => (
@@ -1383,18 +1572,11 @@ export default function Hero() {
                   cx={S7_CUBE.corners[idx][0]}
                   cy={S7_CUBE.corners[idx][1]}
                   r="2.2"
-                  fill={i % 2 === 0 ? '#38bdf8' : '#f59e0b'}
+                  fill={i % 2 === 0 ? '#34d399' : '#f59e0b'}
                 />
               ))}
             </g>
 
-            {/* Accent data streaks radiating outward */}
-            <g stroke="rgba(90,150,255,0.45)" strokeWidth="1">
-              <line x1="1185" y1="300" x2="1410" y2="252" />
-              <line x1="1215" y1="470" x2="1440" y2="470" />
-              <line x1="740" y1="560" x2="470" y2="602" />
-              <line x1="820" y1="700" x2="590" y2="782" />
-            </g>
           </svg>
 
           {/* Top-left text block (label → body → title → subtext) */}
@@ -1433,7 +1615,7 @@ export default function Hero() {
                 phrases={S7_ROTATING}
                 active={inNext}
                 className="mt-7 font-semibold tracking-tight text-white"
-                style={{ fontSize: 'clamp(2.2rem, 4.4vw, 4rem)', lineHeight: 1.05, whiteSpace: 'nowrap' }}
+                style={{ fontSize: 'clamp(2.8rem, 5.6vw, 5.25rem)', lineHeight: 1.05, whiteSpace: 'nowrap' }}
               />
             </div>
           </div>
@@ -1562,6 +1744,7 @@ function RotatingPhrase({
 }) {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState<Set<number>>(new Set());
+  const [hold, setHold] = useState(false); // true once fully visible → gentle zoom-in
   const runToken = useRef(0);
 
   useEffect(() => {
@@ -1574,9 +1757,13 @@ function RotatingPhrase({
     const stale = () => runToken.current !== token;
 
     const run = async () => {
-      // Phase 1 — scramble letters IN
+      // Phase 1 — scramble letters IN (gentle zoom starts as the first letters appear)
+      setHold(false); // reset scale instantly (no transition while hidden)
       setVisible(new Set());
       const shuffled = shuffleArray(Array.from({ length: word.length }, (_, i) => i));
+      await delay(60); // let the scale(1)/transition:none frame flush first
+      if (stale()) return;
+      setHold(true); // begin the slow zoom-in now, while letters are still revealing
       for (let i = 0; i < shuffled.length; i++) {
         await delay(40 + Math.random() * 30);
         if (stale()) return;
@@ -1631,7 +1818,16 @@ function RotatingPhrase({
   }
   flush();
   return (
-    <p className={className} style={style}>
+    <p
+      className={className}
+      style={{
+        ...style,
+        transformOrigin: 'left center',
+        transform: hold ? 'scale(1.07)' : 'scale(1)',
+        // slow ease across the whole reveal + hold; instant reset otherwise
+        transition: hold ? 'transform 3600ms ease-out' : 'none',
+      }}
+    >
       {segments}
     </p>
   );
