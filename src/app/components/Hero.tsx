@@ -95,6 +95,84 @@ const DEV_TICKS = [
   [470, 130], [910, 90], [1180, 300], [470, 450], [910, 450],
   [1250, 620], [660, 690], [910, 810],
 ];
+
+// Section 7 (Scale / vision) — step 10, isometric circuit cube; seamless shift from Section 6
+const NEXT_STEP = 10; // new bodyIndex clamp ceiling
+const S7_LABEL = 'A New Digital Journey Begins';
+const S7_BODY =
+  'Technology will continue to evolve. Our purpose remains the same — supporting education, institutions and the people who serve them.';
+const S7_TITLE = 'Deeniyath Digital Platform';
+// Rotating headline cycles through these phrases in a loop (same letter-scramble as Section 1)
+const S7_ROTATING = [
+  'Connecting institutions.',
+  'Supporting education.',
+  'Building for the future.',
+];
+// Deterministic isometric nested-cube geometry for the Section 7 hero graphic (viewBox 1440×900)
+const S7_CUBE = (() => {
+  const cx = 960, cy = 356, w = 205, h = 115, vh = 236;
+  // top face corners: back, right, front, left
+  const top: number[][] = [
+    [cx, cy - h], [cx + w, cy], [cx, cy + h], [cx - w, cy],
+  ];
+  const corners: number[][] = [...top, ...top.map(([x, y]) => [x, y + vh])];
+  const C = [cx, cy + vh / 2];
+  const inner: number[][] = corners.map(([x, y]) => [
+    +(C[0] + (x - C[0]) * 0.5).toFixed(1),
+    +(C[1] + (y - C[1]) * 0.5).toFixed(1),
+  ]);
+  const edges: number[][] = [
+    [0, 1], [1, 2], [2, 3], [3, 0],
+    [4, 5], [5, 6], [6, 7], [7, 4],
+    [0, 4], [1, 5], [2, 6], [3, 7],
+  ];
+  const faces = {
+    top: [corners[0], corners[1], corners[2], corners[3]],
+    left: [corners[3], corners[2], corners[6], corners[7]],
+    right: [corners[1], corners[2], corners[6], corners[5]],
+  };
+  const nodeIdx = [1, 2, 3, 5, 6, 7]; // front-facing corners get glowing nodes
+  return { corners, inner, edges, faces, nodeIdx };
+})();
+const polyPts = (arr: number[][]) => arr.map((p) => p.join(',')).join(' ');
+// A full-circle path (two arcs) so the dot-trail can travel around it, pathLength-normalised
+function circlePath(cx: number, cy: number, r: number) {
+  return `M${cx - r},${cy} a${r},${r} 0 1,0 ${2 * r},0 a${r},${r} 0 1,0 ${-2 * r},0`;
+}
+// Fading trail of dots travelling along a path (leading dot brightest → faint tail)
+const PG_TRACE_DOTS = [
+  { delay: 0.48, size: 1.6, opacity: 0.08 },
+  { delay: 0.42, size: 1.8, opacity: 0.12 },
+  { delay: 0.36, size: 2.0, opacity: 0.18 },
+  { delay: 0.30, size: 2.2, opacity: 0.26 },
+  { delay: 0.24, size: 2.4, opacity: 0.36 },
+  { delay: 0.18, size: 2.7, opacity: 0.48 },
+  { delay: 0.12, size: 3.0, opacity: 0.62 },
+  { delay: 0.06, size: 3.3, opacity: 0.78 },
+  { delay: 0.0, size: 3.6, opacity: 0.95 },
+];
+function TraceDots({ d, dur, playing, dim = 1 }: { d: string; dur: number; playing: boolean; dim?: number }) {
+  return (
+    <>
+      {PG_TRACE_DOTS.map((dot, i) => (
+        <path
+          key={`td-${i}`}
+          d={d}
+          fill="none"
+          stroke={`rgba(110,231,183,${(dot.opacity * dim).toFixed(3)})`}
+          strokeWidth={dot.size}
+          strokeLinecap="round"
+          pathLength={1}
+          style={{
+            strokeDasharray: '0.0001 0.9999',
+            animation: `pg-trace ${dur}s linear ${(dot.delay - dur).toFixed(2)}s infinite`,
+            animationPlayState: playing ? 'running' : 'paused',
+          }}
+        />
+      ))}
+    </>
+  );
+}
 const PG_HIGHLIGHT = 'BUILT FOR DEENIYATH';
 const PG_CELL = 96; // grid cell size in px
 const PG_V_LINES = 10; // vertical blueprint lines (anchored to the right edge)
@@ -297,7 +375,7 @@ export default function Hero() {
     const step = (dir: number) => {
       if (bodyScrollLock.current) return;
       setBodyIndex(prev => {
-        const next = Math.min(DEV_STEP, Math.max(0, prev + dir));
+        const next = Math.min(NEXT_STEP, Math.max(0, prev + dir));
         if (next !== prev) {
           bodyScrollLock.current = true;
           setTimeout(() => { bodyScrollLock.current = false; }, 850);
@@ -370,6 +448,8 @@ export default function Hero() {
   const inProgress = bodyIndex >= PROGRESS_STEP;
   // Developer/build section (step 9) — dark golden-ratio overlay above the progress layer
   const inDev = bodyIndex >= DEV_STEP;
+  // Scale/vision section (step 10) — isometric cube overlay above the developer layer
+  const inNext = bodyIndex >= NEXT_STEP;
 
   // Handle transition to Section 2
   const handleBeginExperience = async () => {
@@ -1009,9 +1089,12 @@ export default function Hero() {
         <div
           className="absolute inset-0 z-40"
           style={{
+            // Stay opaque during the shift so Section 5 never bleeds through; Section 7 crossfades on top
             opacity: inDev ? 1 : 0,
-            pointerEvents: inDev ? 'auto' : 'none',
-            transition: 'opacity 700ms ease',
+            pointerEvents: inDev && !inNext ? 'auto' : 'none',
+            transform: inNext ? 'scale(1.05) translateY(-30px)' : 'scale(1) translateY(0)',
+            transition:
+              'opacity 700ms ease, transform 900ms cubic-bezier(0.22,1,0.36,1)',
           }}
         >
           {/* Base */}
@@ -1046,6 +1129,14 @@ export default function Hero() {
               <line x1="0" y1="450" x2="1440" y2="450" stroke="rgba(255,255,255,0.05)" />
             </g>
             <path d={DEV_SPIRAL} fill="none" stroke="rgba(110,231,183,0.16)" strokeWidth="1.2" />
+            {/* Dots tracing the concentric circles and divider lines */}
+            <TraceDots d={circlePath(910, 470, 400)} dur={16} playing={inDev} dim={0.4} />
+            <TraceDots d={circlePath(910, 470, 250)} dur={12} playing={inDev} dim={0.4} />
+            <TraceDots d={circlePath(910, 470, 150)} dur={9} playing={inDev} dim={0.4} />
+            <TraceDots d="M470,0 L470,900" dur={10} playing={inDev} dim={0.4} />
+            <TraceDots d="M0,450 L1440,450" dur={14} playing={inDev} dim={0.4} />
+            {/* Tiny dots tracing along the spiral — leading dot brightest, fading trail */}
+            <TraceDots d={DEV_SPIRAL} dur={11} playing={inDev} />
             {/* Bottom-left quarter arc */}
             <circle cx="120" cy="860" r="150" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
             {/* Crosshair ticks */}
@@ -1173,6 +1264,199 @@ export default function Hero() {
           </div>
         </div>
       )}
+
+      {/* ===== Section 7 (step 10) — Scale/vision, isometric circuit cube; rises in as Section 6 lifts away ===== */}
+      {showSection2 && (
+        <div
+          className="absolute inset-0 z-50"
+          style={{
+            opacity: inNext ? 1 : 0,
+            pointerEvents: inNext ? 'auto' : 'none',
+            transition: 'opacity 800ms ease',
+          }}
+        >
+          {/* Green base + soft glow behind the cube (matches the rest of the deck) */}
+          <div className="absolute inset-0" style={{ backgroundColor: '#0A1811' }} />
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(circle at 66% 42%, rgba(16,185,129,0.16), transparent 45%)',
+            }}
+          />
+
+          {/* Isometric nested circuit cube */}
+          <svg
+            className="absolute inset-0 h-full w-full"
+            viewBox="0 0 1440 900"
+            preserveAspectRatio="xMidYMid slice"
+            style={{
+              opacity: inNext ? 1 : 0,
+              transform: inNext ? 'scale(1) translateY(0)' : 'scale(0.9) translateY(14px)',
+              transformOrigin: '66% 44%',
+              filter: inNext ? 'blur(0px)' : 'blur(6px)',
+              transition:
+                'opacity 900ms ease 150ms, transform 1100ms cubic-bezier(0.22,1,0.36,1) 150ms, filter 900ms ease 150ms',
+            }}
+          >
+            <defs>
+              <filter id="s7glow" x="-60%" y="-60%" width="220%" height="220%">
+                <feGaussianBlur stdDeviation="3.2" result="b" />
+                <feMerge>
+                  <feMergeNode in="b" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
+            {/* Outer cube faces */}
+            <polygon
+              points={polyPts(S7_CUBE.faces.top)}
+              fill="rgba(80,140,220,0.05)"
+              stroke="rgba(130,185,255,0.30)"
+              strokeWidth="1.4"
+            />
+            <polygon
+              points={polyPts(S7_CUBE.faces.left)}
+              fill="rgba(40,90,170,0.07)"
+              stroke="rgba(130,185,255,0.20)"
+              strokeWidth="1.4"
+            />
+            <polygon
+              points={polyPts(S7_CUBE.faces.right)}
+              fill="rgba(30,70,140,0.11)"
+              stroke="rgba(130,185,255,0.20)"
+              strokeWidth="1.4"
+            />
+
+            {/* Inner cube edges */}
+            <g stroke="rgba(150,195,255,0.38)" strokeWidth="1" fill="none">
+              {S7_CUBE.edges.map(([a, b], i) => (
+                <line
+                  key={`ie-${i}`}
+                  x1={S7_CUBE.inner[a][0]}
+                  y1={S7_CUBE.inner[a][1]}
+                  x2={S7_CUBE.inner[b][0]}
+                  y2={S7_CUBE.inner[b][1]}
+                />
+              ))}
+            </g>
+
+            {/* Connectors outer → inner (circuit "energy" lines) */}
+            <g stroke="rgba(120,170,255,0.18)" strokeWidth="1" fill="none">
+              {S7_CUBE.nodeIdx.map((idx, i) => (
+                <line
+                  key={`cn-${i}`}
+                  x1={S7_CUBE.corners[idx][0]}
+                  y1={S7_CUBE.corners[idx][1]}
+                  x2={S7_CUBE.inner[idx][0]}
+                  y2={S7_CUBE.inner[idx][1]}
+                />
+              ))}
+            </g>
+
+            {/* Dots tracing the inner cube edges */}
+            {S7_CUBE.edges.slice(0, 8).map(([a, b], i) => (
+              <TraceDots
+                key={`ct-${i}`}
+                d={`M${S7_CUBE.inner[a].join(',')} L${S7_CUBE.inner[b].join(',')}`}
+                dur={7 + i}
+                playing={inNext}
+                dim={0.5}
+              />
+            ))}
+
+            {/* Glowing nodes — inner (bright) + outer corners, alternating amber / cyan */}
+            <g filter="url(#s7glow)">
+              {S7_CUBE.nodeIdx.map((idx, i) => (
+                <circle
+                  key={`ni-${i}`}
+                  cx={S7_CUBE.inner[idx][0]}
+                  cy={S7_CUBE.inner[idx][1]}
+                  r="2.8"
+                  fill={i % 2 === 0 ? '#f59e0b' : '#38bdf8'}
+                />
+              ))}
+              {S7_CUBE.nodeIdx.map((idx, i) => (
+                <circle
+                  key={`no-${i}`}
+                  cx={S7_CUBE.corners[idx][0]}
+                  cy={S7_CUBE.corners[idx][1]}
+                  r="2.2"
+                  fill={i % 2 === 0 ? '#38bdf8' : '#f59e0b'}
+                />
+              ))}
+            </g>
+
+            {/* Accent data streaks radiating outward */}
+            <g stroke="rgba(90,150,255,0.45)" strokeWidth="1">
+              <line x1="1185" y1="300" x2="1410" y2="252" />
+              <line x1="1215" y1="470" x2="1440" y2="470" />
+              <line x1="740" y1="560" x2="470" y2="602" />
+              <line x1="820" y1="700" x2="590" y2="782" />
+            </g>
+          </svg>
+
+          {/* Top-left text block (label → body → title → subtext) */}
+          <div className="absolute inset-0 flex items-start">
+            <div className="px-10 pt-[12vh] md:px-20">
+              <span
+                className="block font-medium"
+                style={{
+                  fontSize: 'clamp(0.8rem, 1vw, 1rem)',
+                  color: 'rgba(255,255,255,0.6)',
+                  opacity: inNext ? 1 : 0,
+                  transform: inNext ? 'translateY(0)' : 'translateY(20px)',
+                  transition:
+                    'opacity 700ms ease 320ms, transform 800ms cubic-bezier(0.22,1,0.36,1) 320ms',
+                }}
+              >
+                {S7_LABEL}
+              </span>
+              <p
+                className="mt-5 font-light"
+                style={{
+                  maxWidth: '38rem',
+                  fontSize: 'clamp(1rem, 1.5vw, 1.4rem)',
+                  lineHeight: 1.45,
+                  color: 'rgba(255,255,255,0.7)',
+                  opacity: inNext ? 1 : 0,
+                  filter: inNext ? 'blur(0px)' : 'blur(10px)',
+                  transform: inNext ? 'translateY(0)' : 'translateY(22px)',
+                  transition:
+                    'opacity 800ms ease 440ms, filter 800ms ease 440ms, transform 900ms cubic-bezier(0.22,1,0.36,1) 440ms',
+                }}
+              >
+                {S7_BODY}
+              </p>
+              <RotatingPhrase
+                phrases={S7_ROTATING}
+                active={inNext}
+                className="mt-7 font-semibold tracking-tight text-white"
+                style={{ fontSize: 'clamp(2.2rem, 4.4vw, 4rem)', lineHeight: 1.05, whiteSpace: 'nowrap' }}
+              />
+            </div>
+          </div>
+
+          {/* Platform name pinned to bottom-centre — small, uppercase */}
+          <div className="absolute inset-x-0 bottom-0 flex justify-center px-6 pb-[6vh]">
+            <p
+              className="text-center font-medium uppercase"
+              style={{
+                fontSize: 'clamp(0.8rem, 1vw, 1rem)',
+                letterSpacing: '0.28em',
+                color: 'rgba(255,255,255,0.5)',
+                opacity: inNext ? 1 : 0,
+                transform: inNext ? 'translateY(0)' : 'translateY(18px)',
+                transition:
+                  'opacity 800ms ease 900ms, transform 900ms cubic-bezier(0.22,1,0.36,1) 900ms',
+              }}
+            >
+              {S7_TITLE}
+            </p>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -1261,6 +1545,95 @@ function AnimatedLetter({ letter, isVisible, delay, className = '' }: { letter: 
     >
       {letter === ' ' ? ' ' : letter}
     </span>
+  );
+}
+
+// Rotating phrase — cycles through phrases in a loop, scrambling letters in/out (like Section 1)
+function RotatingPhrase({
+  phrases,
+  active,
+  className = '',
+  style,
+}: {
+  phrases: string[];
+  active: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState<Set<number>>(new Set());
+  const runToken = useRef(0);
+
+  useEffect(() => {
+    if (!active) {
+      setVisible(new Set());
+      return;
+    }
+    const token = ++runToken.current;
+    const word = phrases[index];
+    const stale = () => runToken.current !== token;
+
+    const run = async () => {
+      // Phase 1 — scramble letters IN
+      setVisible(new Set());
+      const shuffled = shuffleArray(Array.from({ length: word.length }, (_, i) => i));
+      for (let i = 0; i < shuffled.length; i++) {
+        await delay(40 + Math.random() * 30);
+        if (stale()) return;
+        setVisible((prev) => new Set([...prev, shuffled[i]]));
+      }
+      // Phase 2 — hold
+      await delay(2200);
+      if (stale()) return;
+      // Phase 3 — scramble letters OUT
+      for (let i = shuffled.length - 1; i >= 0; i--) {
+        await delay(30 + Math.random() * 20);
+        if (stale()) return;
+        setVisible((prev) => {
+          const next = new Set(prev);
+          next.delete(shuffled[i]);
+          return next;
+        });
+      }
+      if (stale()) return;
+      setIndex((prev) => (prev + 1) % phrases.length);
+    };
+
+    run();
+    return () => {
+      runToken.current++;
+    };
+  }, [index, active, phrases]);
+
+  const word = phrases[index];
+  // Group letters into per-word inline-block spans so wrapping only happens between
+  // words (never mid-word), while each letter still scrambles individually.
+  const segments: React.ReactNode[] = [];
+  let letters: React.ReactNode[] = [];
+  let wordKey = 0;
+  const flush = () => {
+    segments.push(
+      <span key={`w-${wordKey++}`} style={{ display: 'inline-block', whiteSpace: 'nowrap' }}>
+        {letters}
+      </span>,
+    );
+    letters = [];
+  };
+  for (let i = 0; i < word.length; i++) {
+    if (word[i] === ' ') {
+      flush();
+      segments.push(' ');
+    } else {
+      letters.push(
+        <AnimatedLetter key={`${index}-${i}`} letter={word[i]} isVisible={visible.has(i)} delay={0} />,
+      );
+    }
+  }
+  flush();
+  return (
+    <p className={className} style={style}>
+      {segments}
+    </p>
   );
 }
 
