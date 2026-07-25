@@ -986,105 +986,11 @@ export default function Hero() {
                 'opacity 800ms ease 500ms, transform 900ms cubic-bezier(0.22,1,0.36,1) 500ms',
             }}
           >
-            {/* Rotating layer (ring + orbiting nodes) */}
-            <div
-              className="absolute inset-0"
-              style={{
-                animation: 'pg-spin 48s linear infinite',
-                animationPlayState: inProgress ? 'running' : 'paused',
-              }}
-            >
-              {/* Orbit circles */}
-              <div
-                className="absolute inset-0 rounded-full"
-                style={{ border: '1px dashed rgba(255,255,255,0.14)' }}
-              />
-              <div
-                className="absolute rounded-full"
-                style={{
-                  inset: '14%',
-                  border: '1px solid rgba(16,185,129,0.12)',
-                }}
-              />
-
-              {/* Nodes evenly spaced around the ring */}
-              {PG_NODES.map((n, i) => {
-                const ang = ((-90 + i * (360 / PG_NODES.length)) * Math.PI) / 180;
-                const x = 50 + 50 * Math.cos(ang);
-                const y = 50 + 50 * Math.sin(ang);
-                return (
-                  <div
-                    key={n.label}
-                    className="absolute"
-                    style={{ left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)' }}
-                  >
-                    {/* Counter-rotation keeps the icon + label upright */}
-                    <div
-                      className="flex flex-col items-center gap-2"
-                      style={{
-                        animation: 'pg-spin-rev 48s linear infinite',
-                        animationPlayState: inProgress ? 'running' : 'paused',
-                      }}
-                    >
-                      <div
-                        className="flex items-center justify-center rounded-full backdrop-blur-sm"
-                        style={{
-                          width: 'clamp(44px, 4vw, 60px)',
-                          height: 'clamp(44px, 4vw, 60px)',
-                          background: 'rgba(16,185,129,0.08)',
-                          border: '1px solid rgba(16,185,129,0.4)',
-                          color: '#6ee7b7',
-                          boxShadow: '0 0 20px rgba(16,185,129,0.12)',
-                        }}
-                      >
-                        <RingIcon name={n.icon} />
-                      </div>
-                      <span
-                        className="whitespace-nowrap font-light"
-                        style={{
-                          fontSize: 'clamp(0.7rem, 0.9vw, 0.9rem)',
-                          color: 'rgba(255,255,255,0.72)',
-                          letterSpacing: '0.02em',
-                        }}
-                      >
-                        {n.label}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Fixed centre text */}
-            <div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center"
-              style={{ maxWidth: '54%' }}
-            >
-              <p
-                className="whitespace-nowrap font-light"
-                style={{
-                  fontSize: 'clamp(0.8rem, 1vw, 1rem)',
-                  lineHeight: 1.4,
-                  color: 'rgba(255,255,255,0.5)',
-                }}
-              >
-                Connected through
-              </p>
-              <p
-                className="whitespace-nowrap font-normal"
-                style={{
-                  fontSize: 'clamp(1.05rem, 1.6vw, 1.6rem)',
-                  lineHeight: 1.3,
-                  color: '#ffffff',
-                }}
-              >
-                one digital ecosystem.
-              </p>
-            </div>
+            <EcosystemRingInner inProgress={inProgress} />
           </div>
 
           {/* Top tagline — blur → focus, fade, rise */}
-          <div className="absolute inset-x-0 top-0 flex items-start justify-center px-6 pt-16 md:pt-24">
+          <div className="absolute inset-x-0 top-0 flex items-start justify-center px-6 pt-16 md:pt-24 max-md:hidden">
             <p
               className="text-center font-light tracking-tight"
               style={{
@@ -1102,7 +1008,7 @@ export default function Hero() {
 
           {/* Center-left headline + body, left-aligned — blur → focus, fade, rise. Fades out on the partner step. */}
           <div
-            className="absolute left-0 top-[68%] -translate-y-1/2 max-w-[38rem] pl-6 md:pl-20"
+            className="absolute left-0 top-[68%] -translate-y-1/2 max-w-[38rem] pl-6 md:pl-20 max-md:hidden"
             style={{
               opacity: inProgress && !inPartner ? 1 : 0,
               filter: inProgress && !inPartner ? 'blur(0px)' : 'blur(10px)',
@@ -1137,7 +1043,7 @@ export default function Hero() {
 
           {/* Technology Partner (step 9) — crossfades in over the "Designed…" block */}
           <div
-            className="absolute left-0 top-[66%] -translate-y-1/2 max-w-[40rem] pl-6 md:pl-20"
+            className="absolute left-0 top-[66%] -translate-y-1/2 max-w-[40rem] pl-6 md:pl-20 max-md:hidden"
             style={{
               opacity: inPartner ? 1 : 0,
               filter: inPartner ? 'blur(0px)' : 'blur(10px)',
@@ -1171,6 +1077,94 @@ export default function Hero() {
               className="mt-8 w-auto"
               style={{ height: 'clamp(2.75rem, 4.5vw, 4rem)' }}
             />
+          </div>
+
+          {/* Phone-only stacked layout: heading (top) → rotating visual (center) → text (bottom) */}
+          <div className="absolute inset-0 z-[2] flex flex-col items-center px-6 pt-14 pb-10 text-center md:hidden">
+            {/* 1. Built for Deeniyat — pinned top */}
+            <p
+              className="shrink-0 font-light tracking-tight"
+              style={{
+                fontSize: 'clamp(1.2rem, 5.5vw, 1.8rem)',
+                color: 'rgba(255,255,255,0.5)',
+                opacity: inProgress ? 1 : 0,
+                filter: inProgress ? 'blur(0px)' : 'blur(10px)',
+                transform: inProgress ? 'translateY(0)' : 'translateY(24px)',
+                transition:
+                  'opacity 700ms ease 250ms, filter 700ms ease 250ms, transform 800ms cubic-bezier(0.22,1,0.36,1) 250ms',
+              }}
+            >
+              {PG_HIGHLIGHT}
+            </p>
+
+            {/* 2. Rotating visual — centered in the free middle space; sized small enough that its
+                orbiting labels never reach the heading or the text */}
+            <div className="flex min-h-0 w-full flex-1 items-center justify-center py-2">
+              <div
+                className="relative"
+                style={{
+                  width: 'min(56vw, 26vh)',
+                  height: 'min(56vw, 26vh)',
+                  opacity: inProgress ? 1 : 0,
+                  transform: inProgress ? 'scale(1)' : 'scale(0.9)',
+                  transition:
+                    'opacity 800ms ease 400ms, transform 900ms cubic-bezier(0.22,1,0.36,1) 400ms',
+                }}
+              >
+                <EcosystemRingInner inProgress={inProgress} wrapCenter />
+              </div>
+            </div>
+
+            {/* 3. Text — pinned bottom; swaps between "Designed…" (step 8) and "Technology Partner" (step 9) */}
+            <div
+              className="shrink-0 w-full max-w-[34rem]"
+              style={{
+                opacity: inProgress ? 1 : 0,
+                filter: inProgress ? 'blur(0px)' : 'blur(10px)',
+                transition: 'opacity 600ms ease 500ms, filter 600ms ease 500ms',
+              }}
+            >
+              {inPartner ? (
+                <>
+                  <h3
+                    className="font-light tracking-tight text-white"
+                    style={{ fontSize: 'clamp(1.35rem, 5.6vw, 1.8rem)', lineHeight: 1.15 }}
+                  >
+                    {PARTNER_HEAD}
+                  </h3>
+                  <p
+                    className="mt-4 font-light"
+                    style={{ fontSize: 'clamp(0.9rem, 3.6vw, 1rem)', lineHeight: 1.6, color: 'rgba(255,255,255,0.55)' }}
+                  >
+                    {PARTNER_BODY}
+                  </p>
+                  <img
+                    src="/techno%20alliance%20logo.png"
+                    alt="Techno Alliance"
+                    className="mx-auto mt-6 w-auto"
+                    style={{ height: 'clamp(2.5rem, 9vw, 3.25rem)' }}
+                  />
+                </>
+              ) : (
+                <>
+                  <h3
+                    className="font-light tracking-tight text-white"
+                    style={{ fontSize: 'clamp(1.35rem, 5.6vw, 1.8rem)', lineHeight: 1.15 }}
+                  >
+                    Designed Around the Way Deeniyat Works
+                  </h3>
+                  <p
+                    className="mt-4 font-light"
+                    style={{ fontSize: 'clamp(0.9rem, 3.6vw, 1rem)', lineHeight: 1.6, color: 'rgba(255,255,255,0.55)' }}
+                  >
+                    This is not intended to be a generic education software adapted to
+                    Deeniyat. The platform is being designed around Deeniyat&apos;s
+                    organizational structure, academic practices and the practical
+                    workflows of institutions and Muallims.
+                  </p>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -1760,6 +1754,109 @@ function CapCard({ card, gradient, compact = false }: { card: { title: string; s
         </p>
       </div>
     </div>
+  );
+}
+
+// Ecosystem ring visual (rotating orbit + upright nodes + fixed centre text) — shared by desktop & phone layouts
+function EcosystemRingInner({ inProgress, wrapCenter = false }: { inProgress: boolean; wrapCenter?: boolean }) {
+  return (
+    <>
+      {/* Rotating layer (ring + orbiting nodes) */}
+      <div
+        className="absolute inset-0"
+        style={{
+          animation: 'pg-spin 48s linear infinite',
+          animationPlayState: inProgress ? 'running' : 'paused',
+        }}
+      >
+        {/* Orbit circles */}
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{ border: '1px dashed rgba(255,255,255,0.14)' }}
+        />
+        <div
+          className="absolute rounded-full"
+          style={{
+            inset: '14%',
+            border: '1px solid rgba(16,185,129,0.12)',
+          }}
+        />
+
+        {/* Nodes evenly spaced around the ring */}
+        {PG_NODES.map((n, i) => {
+          const ang = ((-90 + i * (360 / PG_NODES.length)) * Math.PI) / 180;
+          const x = 50 + 50 * Math.cos(ang);
+          const y = 50 + 50 * Math.sin(ang);
+          return (
+            <div
+              key={n.label}
+              className="absolute"
+              style={{ left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)' }}
+            >
+              {/* Counter-rotation keeps the icon + label upright */}
+              <div
+                className="flex flex-col items-center gap-2"
+                style={{
+                  animation: 'pg-spin-rev 48s linear infinite',
+                  animationPlayState: inProgress ? 'running' : 'paused',
+                }}
+              >
+                <div
+                  className="flex items-center justify-center rounded-full backdrop-blur-sm"
+                  style={{
+                    width: 'clamp(44px, 4vw, 60px)',
+                    height: 'clamp(44px, 4vw, 60px)',
+                    background: 'rgba(16,185,129,0.08)',
+                    border: '1px solid rgba(16,185,129,0.4)',
+                    color: '#6ee7b7',
+                    boxShadow: '0 0 20px rgba(16,185,129,0.12)',
+                  }}
+                >
+                  <RingIcon name={n.icon} />
+                </div>
+                <span
+                  className="whitespace-nowrap font-light"
+                  style={{
+                    fontSize: 'clamp(0.7rem, 0.9vw, 0.9rem)',
+                    color: 'rgba(255,255,255,0.72)',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  {n.label}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Fixed centre text */}
+      <div
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center"
+        style={{ maxWidth: '54%' }}
+      >
+        <p
+          className={`font-light${wrapCenter ? '' : ' whitespace-nowrap'}`}
+          style={{
+            fontSize: 'clamp(0.8rem, 1vw, 1rem)',
+            lineHeight: 1.4,
+            color: 'rgba(255,255,255,0.5)',
+          }}
+        >
+          Connected through
+        </p>
+        <p
+          className={`font-normal${wrapCenter ? '' : ' whitespace-nowrap'}`}
+          style={{
+            fontSize: 'clamp(1.05rem, 1.6vw, 1.6rem)',
+            lineHeight: 1.3,
+            color: '#ffffff',
+          }}
+        >
+          one digital ecosystem.
+        </p>
+      </div>
+    </>
   );
 }
 
