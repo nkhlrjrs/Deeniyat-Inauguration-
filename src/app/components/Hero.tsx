@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import ShinyText from './ShinyText';
 import GridPathAnimator from './GridPathAnimator';
+
+// Runs before paint on the client, falls back to useEffect during SSR (no warning).
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 const ROTATING_WORDS = ['Governance', 'Education', 'Administration', 'Communication', 'Collaboration'];
 
@@ -269,6 +272,15 @@ function RingIcon({ name }: { name: PG_NodeIcon }) {
 type PG_NodeIcon = (typeof PG_NODES)[number]['icon'];
 
 export default function Hero() {
+  // Reveal-by-default safety: heading + CTA render visible until the client boots,
+  // so they can never stay stuck invisible if the intro animation fails to run
+  // (e.g. slow/interrupted hydration on a real device). Flipped before first paint
+  // on the client, so the desktop scramble animation is unchanged (no flash).
+  const [booted, setBooted] = useState(false);
+  useIsomorphicLayoutEffect(() => {
+    setBooted(true);
+  }, []);
+
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentWord, setCurrentWord] = useState('');
   const [visibleLetters, setVisibleLetters] = useState<Set<number>>(new Set());
@@ -509,14 +521,14 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative h-screen w-full overflow-hidden flex items-end justify-center pb-32">
+    <section className="relative h-screen max-md:h-[100dvh] w-full overflow-hidden flex items-end justify-center pb-32 max-sm:pb-20">
       {/* Background Video */}
       <video
         autoPlay
         loop
         muted
         playsInline
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+        className={`absolute left-1/2 top-1/2 h-auto w-auto min-h-full min-w-full max-w-none -translate-x-1/2 -translate-y-1/2 object-cover transition-opacity duration-700 ${
           bgTransition ? 'opacity-0' : 'opacity-100'
         }`}
       >
@@ -549,32 +561,18 @@ export default function Hero() {
 
       {/* Content - Section 1 */}
       {!showSection2 && (
-        <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-white mb-12 leading-tight">
-            {/* Line 1 with animation */}
-            <div className="whitespace-nowrap">
-              {TEXT_LINE_1.split('').map((letter, index) => (
-                <AnimatedLetter
-                  key={`line1-${index}`}
-                  letter={letter}
-                  isVisible={line1Visible.has(index)}
-                  delay={0}
-                />
-              ))}
+        <div className="relative z-10 text-center px-4 w-full max-w-5xl mx-auto">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-white mb-8 md:mb-12 leading-tight">
+            {/* Line 1 with animation — wraps by whole words on small screens */}
+            <div className="lg:whitespace-nowrap">
+              <AnimatedLine text={TEXT_LINE_1} visible={line1Visible} booted={booted} />
             </div>
-            {/* Line 2 with animation */}
-            <div className="whitespace-nowrap flex items-center justify-center gap-2">
+            {/* Line 2 with animation — fixed text + rotating word; single line on desktop, wraps below */}
+            <div className="block text-center lg:flex lg:flex-nowrap lg:items-center lg:justify-center lg:gap-x-2 lg:whitespace-nowrap">
               <span>
-                {TEXT_LINE_2_PART_1.split('').map((letter, index) => (
-                  <AnimatedLetter
-                    key={`line2-${index}`}
-                    letter={letter}
-                    isVisible={line2Visible.has(index)}
-                    delay={0}
-                  />
-                ))}
+                <AnimatedLine text={TEXT_LINE_2_PART_1} visible={line2Visible} booted={booted} />
               </span>
-              <span className="inline-block w-[270px] md:w-[320px] text-left">
+              <span className="inline-block w-auto min-w-[9rem] ml-2 text-center lg:ml-0 lg:w-[320px] lg:min-w-0 lg:text-left">
                 {currentWord.split('').map((letter, index) => (
                   <AnimatedLetter
                     key={`${currentWordIndex}-${index}`}
@@ -590,7 +588,7 @@ export default function Hero() {
           {/* CTA Button */}
           <button
             onClick={handleBeginExperience}
-            className={`group relative px-8 py-4 bg-white/10 backdrop-blur-md border border-white/30 font-light text-lg rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-white/20 ${buttonVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} gradient-border-button`}
+            className={`group relative px-8 py-4 bg-white/10 backdrop-blur-md border border-white/30 font-light text-lg rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-white/20 ${buttonVisible || !booted ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} gradient-border-button`}
           >
             {/* Gradient Border */}
             <div className="gradient-border" />
@@ -649,7 +647,7 @@ export default function Hero() {
             </h2>
 
             {/* Eyebrow text below the title */}
-            <p className="text-xl md:text-2xl lg:text-3xl font-light tracking-wide text-white/60 mb-8">
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-light tracking-wide text-white/60 mb-8">
               {SECTION_2_EYEBROW.split('').map((letter, index) => (
                 <AnimatedLetter
                   key={`s2-eyebrow-${index}`}
@@ -664,7 +662,7 @@ export default function Hero() {
             <div className="relative mx-auto w-full max-w-[1800px]" style={{ minHeight: 'clamp(180px, 24vh, 300px)' }}>
               {/* Body 1 */}
               <p
-                className="absolute inset-x-0 top-0 text-2xl md:text-3xl lg:text-4xl font-light leading-snug text-white/90 transition-all duration-700 ease-out"
+                className="absolute inset-x-0 top-0 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light leading-snug text-white/90 transition-all duration-700 ease-out"
                 style={bodyStyle(0)}
               >
                 {SECTION_2_BODY.split(' ').map((word, wordIndex) => (
@@ -677,7 +675,7 @@ export default function Hero() {
               </p>
               {/* Body 2 */}
               <p
-                className="absolute inset-x-0 top-0 text-2xl md:text-3xl lg:text-4xl font-light leading-snug text-white/90 transition-all duration-700 ease-out"
+                className="absolute inset-x-0 top-0 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light leading-snug text-white/90 transition-all duration-700 ease-out"
                 style={bodyStyle(1)}
               >
                 {SECTION_2_BODY_2}
@@ -770,7 +768,7 @@ export default function Hero() {
 
           {/* Central divider line */}
           <div
-            className="absolute top-0 bottom-0 left-1/2 w-px z-[14] pointer-events-none"
+            className="absolute top-0 bottom-0 left-1/2 w-px z-[14] pointer-events-none max-md:hidden"
             style={{
               background: 'rgba(10,24,17,0.14)',
               opacity: inCaps ? 1 : 0,
@@ -797,8 +795,8 @@ export default function Hero() {
               {CAP_FRAMES.map((frame, fi) => {
                 const active = inCaps && capFrame === fi;
                 return (
-                  <div key={`cap-frame-${fi}`} className="flex h-full w-screen shrink-0">
-                    <div className="flex h-full w-1/2 items-center justify-center px-6 md:px-10">
+                  <div key={`cap-frame-${fi}`} className="flex flex-col md:flex-row h-full w-screen shrink-0">
+                    <div className="flex h-1/2 w-full md:h-full md:w-1/2 items-center justify-center px-6 md:px-10">
                       <CapReveal show={active} delay={0}>
                         {frame.left.kind === 'text' ? (
                           <CapText />
@@ -807,7 +805,7 @@ export default function Hero() {
                         )}
                       </CapReveal>
                     </div>
-                    <div className="flex h-full w-1/2 items-center justify-center px-6 md:px-10">
+                    <div className="flex h-1/2 w-full md:h-full md:w-1/2 items-center justify-center px-6 md:px-10">
                       <CapReveal show={active} delay={150}>
                         {frame.right.kind === 'text' ? (
                           <CapText />
@@ -924,7 +922,7 @@ export default function Hero() {
 
           {/* Right-side ecosystem ring — slow rotation, upright labelled nodes, fixed centre text */}
           <div
-            className="absolute right-[16%] top-[78%] -translate-y-1/2"
+            className="absolute right-[16%] top-[78%] -translate-y-1/2 max-md:hidden"
             style={{
               width: 'min(46vh, 40vw)',
               height: 'min(46vh, 40vw)',
@@ -1052,7 +1050,7 @@ export default function Hero() {
 
           {/* Center-left headline + body, left-aligned — blur → focus, fade, rise. Fades out on the partner step. */}
           <div
-            className="absolute left-0 top-[68%] -translate-y-1/2 max-w-[38rem] pl-12 md:pl-20"
+            className="absolute left-0 top-[68%] -translate-y-1/2 max-w-[38rem] pl-6 md:pl-20"
             style={{
               opacity: inProgress && !inPartner ? 1 : 0,
               filter: inProgress && !inPartner ? 'blur(0px)' : 'blur(10px)',
@@ -1087,7 +1085,7 @@ export default function Hero() {
 
           {/* Technology Partner (step 9) — crossfades in over the "Designed…" block */}
           <div
-            className="absolute left-0 top-[66%] -translate-y-1/2 max-w-[40rem] pl-12 md:pl-20"
+            className="absolute left-0 top-[66%] -translate-y-1/2 max-w-[40rem] pl-6 md:pl-20"
             style={{
               opacity: inPartner ? 1 : 0,
               filter: inPartner ? 'blur(0px)' : 'blur(10px)',
@@ -1576,7 +1574,7 @@ export default function Hero() {
 
           {/* Top-left text block (label → body → title → subtext) */}
           <div className="absolute inset-0 flex items-start">
-            <div className="px-10 pt-[12vh] md:px-20">
+            <div className="px-6 pt-[12vh] md:px-20">
               <span
                 className="block font-medium"
                 style={{
@@ -1609,8 +1607,8 @@ export default function Hero() {
               <RotatingPhrase
                 phrases={S7_ROTATING}
                 active={inNext}
-                className="mt-7 font-semibold tracking-tight text-white"
-                style={{ fontSize: 'clamp(2.8rem, 5.6vw, 5.25rem)', lineHeight: 1.05, whiteSpace: 'nowrap' }}
+                className="mt-7 font-semibold tracking-tight text-white max-lg:whitespace-normal lg:whitespace-nowrap"
+                style={{ fontSize: 'clamp(1.85rem, 5.6vw, 5.25rem)', lineHeight: 1.05 }}
               />
             </div>
           </div>
@@ -1675,8 +1673,8 @@ function CapText() {
 function CapCard({ card, gradient }: { card: { title: string; sub: string; img: string }; gradient: string }) {
   return (
     <div
-      className="relative overflow-hidden rounded-2xl shadow-[0_30px_60px_-25px_rgba(10,24,17,0.55)]"
-      style={{ width: 'min(40vw, 640px, 94vh)', aspectRatio: '3 / 2', background: gradient }}
+      className="relative overflow-hidden rounded-2xl shadow-[0_30px_60px_-25px_rgba(10,24,17,0.55)] aspect-[3/2] w-[min(86vw,42vh)] md:w-[min(40vw,640px,94vh)]"
+      style={{ background: gradient }}
     >
       {/* background image (gradient above shows while it loads) */}
       <img
@@ -1723,6 +1721,39 @@ function AnimatedLetter({ letter, isVisible, delay, className = '' }: { letter: 
       {letter === ' ' ? ' ' : letter}
     </span>
   );
+}
+
+// Renders a string as individually-animated letters, grouped into per-word
+// nowrap spans so wrapping only ever happens between words (never mid-word).
+// Letter indices stay global, so the existing visibility Sets keep working.
+function AnimatedLine({ text, visible, booted = true }: { text: string; visible: Set<number>; booted?: boolean }) {
+  const groups: React.ReactNode[] = [];
+  let letters: React.ReactNode[] = [];
+  let wordKey = 0;
+  const flush = () => {
+    if (letters.length) {
+      groups.push(
+        <span key={`al-w-${wordKey++}`} className="inline-block whitespace-nowrap">
+          {letters}
+        </span>,
+      );
+      letters = [];
+    }
+  };
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === ' ') {
+      flush();
+      // Plain text-node space = a real soft-wrap opportunity between words.
+      groups.push(' ');
+    } else {
+      // Before the client boots, render every letter visible as a fallback.
+      letters.push(
+        <AnimatedLetter key={i} letter={text[i]} isVisible={!booted || visible.has(i)} delay={0} />,
+      );
+    }
+  }
+  flush();
+  return <>{groups}</>;
 }
 
 // Rotating phrase — cycles through phrases in a loop, scrambling letters in/out (like Section 1)

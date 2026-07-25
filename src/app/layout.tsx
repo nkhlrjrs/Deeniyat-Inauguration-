@@ -18,7 +18,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="min-h-full flex flex-col" style={{ fontFamily: "'Familjen Grotesk', sans-serif" }}>
+      <body className="min-h-full flex flex-col max-md:h-[100dvh] max-md:min-h-[100dvh] max-md:overflow-hidden" style={{ fontFamily: "'Familjen Grotesk', sans-serif" }}>
         {children}
       </body>
     </html>
