@@ -21,13 +21,20 @@ const SECTION_2_BODY_2 = 'The Deeniyath Digital Platform is being developed to s
 // Section 3 (Ecosystem) content — third scroll step
 const ECO_HEADLINE = 'One Connected Deeniyath Ecosystem';
 const ECO_SUB = 'One platform connecting every level of the Deeniyath educational network.';
-const ECO_NODES = [
-  { title: 'Central Board', body: 'Governance, standards, oversight and centralized administration.' },
-  { title: 'Zones', body: 'Coordination, monitoring, institutional support and field activities.' },
-  { title: 'Institutions', body: 'Academic and administrative operations at the madrasa level.' },
+// Flowchart tree: root → { Institution ERP with LMS → (Teacher App, Parent App), Public Services }
+const ECO_ROOT = {
+  title: 'Central Governance Board ERP',
+  sub: 'Governance • Monitoring • Administration',
+};
+const ECO_L1 = [
+  { title: 'Institution ERP with LMS', sub: 'Academic • Administration • Learning' },
+  { title: 'Public Services', sub: 'Registrations • Results' },
 ];
-const ECO_LEAVES = ['Muallims', 'Students', 'Parents'];
-const ECO_TOTAL_STEPS = 9;
+const ECO_L2 = [
+  { title: 'Teacher App', sub: 'Teaching • Academics • Communication' },
+  { title: 'Parent App', sub: 'Child Progress • Communication' },
+];
+const ECO_TOTAL_STEPS = 7;
 
 // Section 4 (Capabilities) — horizontal filmstrip, steps 3–7
 const CAP_HEADLINE = 'Bringing Deeniyath Operations Together';
@@ -703,42 +710,30 @@ export default function Hero() {
                 {ECO_SUB}
               </p>
 
-              {/* Flowchart */}
-              <div className="flex flex-col items-center w-full">
-                <EcoBox title={ECO_NODES[0].title} body={ECO_NODES[0].body} show={ecoStep >= 3} />
-                <VLine show={ecoStep >= 4} />
-                <EcoBox title={ECO_NODES[1].title} body={ECO_NODES[1].body} show={ecoStep >= 5} />
-                <VLine show={ecoStep >= 6} />
-                <EcoBox title={ECO_NODES[2].title} body={ECO_NODES[2].body} show={ecoStep >= 7} />
+              {/* Flowchart — root splits into two, then the left child splits into two */}
+              <div className="flex w-full flex-col items-center">
+                {/* Root */}
+                <div className="w-full max-w-[460px]">
+                  <EcoBox title={ECO_ROOT.title} sub={ECO_ROOT.sub} show={ecoStep >= 3} />
+                </div>
 
-                {/* Branch splitting into three */}
-                <div className="w-full max-w-[720px]">
-                  <div className="relative h-8 md:h-10 w-full">
-                    {/* stem */}
-                    <div
-                      className="absolute left-1/2 top-0 h-4 w-px bg-gradient-to-b from-white/40 to-white/20 origin-top transition-transform duration-300 ease-out"
-                      style={{ transform: `translateX(-50%) scaleY(${ecoStep >= 8 ? 1 : 0})` }}
-                    />
-                    {/* horizontal bus */}
-                    <div
-                      className="absolute top-4 left-[16.666%] right-[16.666%] h-px bg-white/30 origin-center transition-transform duration-300 ease-out"
-                      style={{ transform: `scaleX(${ecoStep >= 8 ? 1 : 0})`, transitionDelay: ecoStep >= 8 ? '150ms' : '0ms' }}
-                    />
-                    {/* three drops down to the leaf boxes */}
-                    {['16.666%', '50%', '83.333%'].map((leftPos, i) => (
-                      <div
-                        key={`eco-drop-${i}`}
-                        className="absolute top-4 h-4 w-px bg-gradient-to-b from-white/30 to-white/20 origin-top transition-transform duration-300 ease-out"
-                        style={{ left: leftPos, transform: `translateX(-50%) scaleY(${ecoStep >= 8 ? 1 : 0})`, transitionDelay: ecoStep >= 8 ? '300ms' : '0ms' }}
-                      />
-                    ))}
+                <div className="w-full max-w-[880px]">
+                  {/* First split — from root centre to the two column centres (25% / 75%) */}
+                  <FlowSplit show={ecoStep >= 4} />
+
+                  {/* Row 1: Institution ERP with LMS | Public Services */}
+                  <div className="grid grid-cols-2 items-start gap-4 md:gap-8">
+                    <EcoBox title={ECO_L1[0].title} sub={ECO_L1[0].sub} show={ecoStep >= 5} />
+                    <EcoBox title={ECO_L1[1].title} sub={ECO_L1[1].sub} show={ecoStep >= 5} />
                   </div>
 
-                  {/* Leaf boxes */}
-                  <div className="grid grid-cols-3 gap-3 md:gap-4">
-                    {ECO_LEAVES.map((leaf, i) => (
-                      <EcoLeaf key={leaf} label={leaf} show={ecoStep >= 9} delay={i * 100} />
-                    ))}
+                  {/* Second split — branches from the left box (25%) to Teacher App + Parent App */}
+                  <FlowSplit show={ecoStep >= 6} stem="25%" />
+
+                  {/* Row 2: Teacher App | Parent App — same widths as the row above */}
+                  <div className="grid grid-cols-2 items-start gap-4 md:gap-8">
+                    <EcoBox title={ECO_L2[0].title} sub={ECO_L2[0].sub} show={ecoStep >= 7} delay={0} />
+                    <EcoBox title={ECO_L2[1].title} sub={ECO_L2[1].sub} show={ecoStep >= 7} delay={100} />
                   </div>
                 </div>
               </div>
@@ -1848,58 +1843,20 @@ function AnimatedWord({ word, isVisible }: { word: string; isVisible: boolean })
   );
 }
 
-// Ecosystem flowchart node box
-function EcoBox({ title, body, show }: { title: string; body: string; show: boolean }) {
+// Ecosystem flowchart node box (title + subtext)
+function EcoBox({ title, sub, show, delay = 0 }: { title: string; sub: string; show: boolean; delay?: number }) {
   return (
     <div
-      className={`group relative w-full max-w-[560px] overflow-hidden rounded-2xl px-7 py-5 text-center transition-all duration-500 ease-out ${
-        show ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95'
-      }`}
-      style={{
-        background:
-          'linear-gradient(180deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.035) 100%)',
-        border: '1px solid rgba(255,255,255,0.14)',
-        boxShadow:
-          '0 10px 30px -12px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18)',
-        backdropFilter: 'blur(8px)',
-      }}
-    >
-      {/* soft top glow */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 -top-16 h-40 w-40 -translate-x-1/2 rounded-full opacity-40 blur-3xl transition-opacity duration-500 group-hover:opacity-70"
-        style={{ background: 'radial-gradient(circle, rgba(52,211,153,0.30) 0%, transparent 70%)' }}
-      />
-      <h4 className="relative text-2xl md:text-3xl font-semibold tracking-tight text-white">{title}</h4>
-      <p className="relative mt-1.5 text-base md:text-lg leading-snug text-white/60">{body}</p>
-    </div>
-  );
-}
-
-// Vertical connector that draws downward
-function VLine({ show }: { show: boolean }) {
-  return (
-    <div
-      className="h-5 md:h-6 w-px bg-gradient-to-b from-white/40 to-white/15 origin-top transition-transform duration-500 ease-out"
-      style={{ transform: `scaleY(${show ? 1 : 0})` }}
-    />
-  );
-}
-
-// Ecosystem leaf box (Muallims / Students / Parents)
-function EcoLeaf({ label, show, delay }: { label: string; show: boolean; delay: number }) {
-  return (
-    <div
-      className={`group relative flex items-center justify-center overflow-hidden rounded-xl px-4 py-4 transition-all duration-500 ease-out ${
+      className={`group relative w-full overflow-hidden rounded-xl px-4 py-3.5 text-center transition-all duration-500 ease-out md:px-5 md:py-4 ${
         show ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95'
       }`}
       style={{
         transitionDelay: show ? `${delay}ms` : '0ms',
         background:
-          'linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)',
+          'linear-gradient(180deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.035) 100%)',
         border: '1px solid rgba(255,255,255,0.14)',
         boxShadow:
-          '0 8px 24px -14px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.16)',
+          '0 10px 30px -12px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18)',
         backdropFilter: 'blur(8px)',
       }}
     >
@@ -1909,7 +1866,44 @@ function EcoLeaf({ label, show, delay }: { label: string; show: boolean; delay: 
         className="absolute left-1/2 top-0 h-0.5 w-10 -translate-x-1/2 rounded-full"
         style={{ background: 'linear-gradient(90deg, transparent, #34D399, transparent)' }}
       />
-      <span className="relative text-xl md:text-2xl font-medium tracking-tight text-white">{label}</span>
+      <h4
+        className="relative font-semibold tracking-tight text-white"
+        style={{ fontSize: 'clamp(0.95rem, 1.5vw, 1.4rem)', lineHeight: 1.15 }}
+      >
+        {title}
+      </h4>
+      <p
+        className="relative mt-1 leading-snug text-white/55"
+        style={{ fontSize: 'clamp(0.7rem, 0.9vw, 0.92rem)' }}
+      >
+        {sub}
+      </p>
+    </div>
+  );
+}
+
+// Flowchart split connector — stem down (from `stem`), horizontal bus, two drops to child column centres (25% / 75%)
+function FlowSplit({ show, stem = '50%' }: { show: boolean; stem?: string }) {
+  return (
+    <div className="relative h-8 w-full md:h-10">
+      {/* stem — drops from the parent box centre */}
+      <div
+        className="absolute top-0 h-4 w-px origin-top bg-gradient-to-b from-white/40 to-white/20 transition-transform duration-300 ease-out"
+        style={{ left: stem, transform: `translateX(-50%) scaleY(${show ? 1 : 0})` }}
+      />
+      {/* horizontal bus spanning the two column centres */}
+      <div
+        className="absolute left-1/4 right-1/4 top-4 h-px origin-center bg-white/30 transition-transform duration-300 ease-out"
+        style={{ transform: `scaleX(${show ? 1 : 0})`, transitionDelay: show ? '150ms' : '0ms' }}
+      />
+      {/* drops into each child column centre */}
+      {['25%', '75%'].map((leftPos, i) => (
+        <div
+          key={`split-drop-${i}`}
+          className="absolute top-4 h-4 w-px origin-top bg-gradient-to-b from-white/30 to-white/20 transition-transform duration-300 ease-out"
+          style={{ left: leftPos, transform: `translateX(-50%) scaleY(${show ? 1 : 0})`, transitionDelay: show ? '300ms' : '0ms' }}
+        />
+      ))}
     </div>
   );
 }
