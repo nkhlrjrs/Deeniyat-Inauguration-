@@ -60,7 +60,123 @@ const CAP_FRAMES: { left: { kind: 'text' } | { kind: 'card'; i: number }; right:
   { left: { kind: 'card', i: 5 }, right: { kind: 'card', i: 6 } },
   { left: { kind: 'card', i: 7 }, right: { kind: 'text' } },
 ];
-const CAP_LAST_STEP = 7; // bodyIndex clamp ceiling (2 = ecosystem, 3..7 = capability frames)
+const CAP_LAST_STEP = 7; // last capability frame step (2 = ecosystem, 3..7 = capability frames)
+
+// Section 5 (Progress statement) — step 8, dark charcoal with animated blueprint grid
+const PROGRESS_STEP = 8;
+// Section 6 (Developer / build) — step 9, dark with golden-ratio blueprint geometry
+const DEV_STEP = 9; // bodyIndex clamp ceiling
+const DEV_LABEL = 'PARTICIPATION';
+const DEV_BODY =
+  'The people who manage institutions and teach students every day understand the practical needs of Deeniyath best. As the platform develops, feedback from management teams, Muallims and other stakeholders will help us understand existing challenges and identify opportunities for improvement.';
+const DEV_EMPHASIS = 'Your Experience Matters.';
+const DEV_QUESTIONS = [
+  'What takes too much time today?',
+  'What processes can be made simpler?',
+  'Where can technology support you better?',
+  'What should we consider while building the platform?',
+];
+// Logarithmic (golden) spiral path, grown outward from a centre — deterministic, no randomness
+function goldenSpiralPath(cx: number, cy: number, startR: number, turns: number) {
+  const b = Math.log(1.6180339887) / (Math.PI / 2);
+  const steps = 260;
+  const maxT = turns * 2 * Math.PI;
+  const pts: string[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = (i / steps) * maxT;
+    const r = startR * Math.exp(b * t);
+    pts.push(`${(cx + r * Math.cos(t)).toFixed(1)},${(cy + r * Math.sin(t)).toFixed(1)}`);
+  }
+  return 'M' + pts.join(' L');
+}
+const DEV_SPIRAL = goldenSpiralPath(910, 470, 7, 2.55);
+// Crosshair "+" tick positions on the blueprint (viewBox 1440×900)
+const DEV_TICKS = [
+  [470, 130], [910, 90], [1180, 300], [470, 450], [910, 450],
+  [1250, 620], [660, 690], [910, 810],
+];
+const PG_HIGHLIGHT = 'BUILT FOR DEENIYATH';
+const PG_CELL = 96; // grid cell size in px
+const PG_V_LINES = 10; // vertical blueprint lines (anchored to the right edge)
+const PG_H_LINES = 13; // horizontal blueprint lines
+// Scattered blue accent segments along the grid ({ d: orientation, c: cell from right, r: cell from top })
+const PG_BLUE: { d: 'h' | 'v'; c: number; r: number }[] = [
+  { d: 'v', c: 1, r: 0 }, { d: 'h', c: 4, r: 1 }, { d: 'v', c: 8, r: 1 }, { d: 'h', c: 2, r: 2 },
+  { d: 'v', c: 5, r: 3 }, { d: 'h', c: 7, r: 3 }, { d: 'h', c: 3, r: 4 }, { d: 'v', c: 9, r: 4 },
+  { d: 'v', c: 2, r: 5 }, { d: 'h', c: 6, r: 6 }, { d: 'v', c: 4, r: 7 }, { d: 'h', c: 8, r: 7 },
+  { d: 'h', c: 1, r: 8 }, { d: 'v', c: 7, r: 8 }, { d: 'v', c: 3, r: 9 }, { d: 'h', c: 5, r: 10 },
+  { d: 'v', c: 9, r: 10 }, { d: 'h', c: 2, r: 11 }, { d: 'v', c: 6, r: 11 }, { d: 'h', c: 4, r: 12 },
+];
+
+// Ecosystem ring — six labelled nodes evenly spaced around a slowly rotating circle
+const PG_NODES: { label: string; icon: 'board' | 'zones' | 'institutions' | 'muallims' | 'students' | 'parents' }[] = [
+  { label: 'Board', icon: 'board' },
+  { label: 'Zones', icon: 'zones' },
+  { label: 'Institutions', icon: 'institutions' },
+  { label: 'Muallims', icon: 'muallims' },
+  { label: 'Students', icon: 'students' },
+  { label: 'Parents', icon: 'parents' },
+];
+
+function RingIcon({ name }: { name: PG_NodeIcon }) {
+  const common = {
+    width: 24,
+    height: 24,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.6,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
+  switch (name) {
+    case 'board':
+      return (
+        <svg {...common}>
+          <rect x="3" y="4" width="18" height="14" rx="2" />
+          <path d="M7 20h10M7 9h4M7 13h7" />
+        </svg>
+      );
+    case 'zones':
+      return (
+        <svg {...common}>
+          <path d="M9 4 4 6v14l5-2 6 2 5-2V4l-5 2-6-2Z" />
+          <path d="M9 4v14M15 6v14" />
+        </svg>
+      );
+    case 'institutions':
+      return (
+        <svg {...common}>
+          <path d="M3 21h18M5 21V9l7-4 7 4v12" />
+          <path d="M9 21v-6h6v6M9 11h.01M15 11h.01" />
+        </svg>
+      );
+    case 'muallims':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="7" r="3" />
+          <path d="M5 21v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1" />
+          <path d="M12 10v3" />
+        </svg>
+      );
+    case 'students':
+      return (
+        <svg {...common}>
+          <path d="M12 4 2 9l10 5 10-5-10-5Z" />
+          <path d="M6 11v4c0 1.7 2.7 3 6 3s6-1.3 6-3v-4M22 9v5" />
+        </svg>
+      );
+    case 'parents':
+      return (
+        <svg {...common}>
+          <circle cx="8" cy="8" r="2.6" />
+          <circle cx="16" cy="8" r="2.6" />
+          <path d="M3 20v-1a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v1M13 20v-1a4 4 0 0 1 4-4h0a4 4 0 0 1 4 4v1" />
+        </svg>
+      );
+  }
+}
+type PG_NodeIcon = (typeof PG_NODES)[number]['icon'];
 
 export default function Hero() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -181,7 +297,7 @@ export default function Hero() {
     const step = (dir: number) => {
       if (bodyScrollLock.current) return;
       setBodyIndex(prev => {
-        const next = Math.min(CAP_LAST_STEP, Math.max(0, prev + dir));
+        const next = Math.min(DEV_STEP, Math.max(0, prev + dir));
         if (next !== prev) {
           bodyScrollLock.current = true;
           setTimeout(() => { bodyScrollLock.current = false; }, 850);
@@ -249,7 +365,11 @@ export default function Hero() {
 
   // Capabilities filmstrip (steps 3–7)
   const inCaps = bodyIndex >= 3;
-  const capFrame = Math.max(0, bodyIndex - 3);
+  const capFrame = Math.min(CAP_FRAMES.length - 1, Math.max(0, bodyIndex - 3));
+  // Progress statement (step 8) — charcoal overlay sits above the white capabilities layer
+  const inProgress = bodyIndex >= PROGRESS_STEP;
+  // Developer/build section (step 9) — dark golden-ratio overlay above the progress layer
+  const inDev = bodyIndex >= DEV_STEP;
 
   // Handle transition to Section 2
   const handleBeginExperience = async () => {
@@ -620,6 +740,438 @@ export default function Hero() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Content - Section 5: Progress statement (step 8) — charcoal + animated blueprint grid */}
+      {showSection2 && (
+        <div
+          className="absolute inset-0 z-30"
+          style={{
+            opacity: inProgress ? 1 : 0,
+            pointerEvents: 'none',
+            transition: 'opacity 700ms ease',
+          }}
+        >
+          {/* Charcoal base */}
+          <div className="absolute inset-0" style={{ backgroundColor: '#0A1811' }} />
+
+          {/* Full-width dot grid (aligned to the right edge so it meets the line grid) */}
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.14) 1.2px, transparent 1.4px)',
+              backgroundSize: `${PG_CELL}px ${PG_CELL}px`,
+              backgroundPosition: 'right top',
+              maskImage: 'radial-gradient(ellipse at center, transparent 30%, black 78%)',
+              WebkitMaskImage: 'radial-gradient(ellipse at center, transparent 30%, black 78%)',
+            }}
+          />
+
+          {/* Right-side animated blueprint line grid */}
+          <div
+            className="absolute right-0 top-0 h-full overflow-hidden"
+            style={{
+              width: `${(PG_V_LINES - 1) * PG_CELL + 2}px`,
+              maskImage:
+                'radial-gradient(ellipse at center, transparent 25%, black 78%), linear-gradient(to right, transparent 0%, black 35%)',
+              WebkitMaskImage:
+                'radial-gradient(ellipse at center, transparent 25%, black 78%), linear-gradient(to right, transparent 0%, black 35%)',
+              maskComposite: 'intersect',
+              WebkitMaskComposite: 'source-in',
+            }}
+          >
+            {/* Vertical lines — draw down, sweeping right → left */}
+            {Array.from({ length: PG_V_LINES }).map((_, c) => (
+              <div
+                key={`pgv-${c}`}
+                className="absolute top-0 bottom-0"
+                style={{
+                  right: `${c * PG_CELL}px`,
+                  borderLeft: '1px dashed rgba(255,255,255,0.10)',
+                  transformOrigin: 'top',
+                  transform: inProgress ? 'scaleY(1)' : 'scaleY(0)',
+                  opacity: inProgress ? 1 : 0,
+                  transition: `transform 750ms cubic-bezier(0.22,1,0.36,1) ${c * 45}ms, opacity 500ms ease ${c * 45}ms`,
+                }}
+              />
+            ))}
+            {/* Horizontal lines — draw across, sweeping top → bottom */}
+            {Array.from({ length: PG_H_LINES }).map((_, r) => (
+              <div
+                key={`pgh-${r}`}
+                className="absolute left-0 right-0"
+                style={{
+                  top: `${r * PG_CELL}px`,
+                  borderTop: '1px dashed rgba(255,255,255,0.10)',
+                  transformOrigin: 'right',
+                  transform: inProgress ? 'scaleX(1)' : 'scaleX(0)',
+                  opacity: inProgress ? 1 : 0,
+                  transition: `transform 750ms cubic-bezier(0.22,1,0.36,1) ${r * 45}ms, opacity 500ms ease ${r * 45}ms`,
+                }}
+              />
+            ))}
+            {/* Green accent comets — travel along a grid line, fade out, loop (staggered) */}
+            {PG_BLUE.map((b, i) => {
+              const dist = 2.5 * PG_CELL; // travel ~2.5 cells along the line
+              const dur = 2400 + ((i * 313) % 2000); // 2.4s–4.4s
+              const delay = (i * 517) % 4200; // 0–4.2s staggered start
+              return (
+                <div
+                  key={`pgb-${i}`}
+                  className="absolute"
+                  style={{
+                    right: `${b.c * PG_CELL}px`,
+                    top: `${b.r * PG_CELL}px`,
+                    width: b.d === 'h' ? `${PG_CELL}px` : '1.5px',
+                    height: b.d === 'h' ? '1.5px' : `${PG_CELL}px`,
+                    background:
+                      b.d === 'h'
+                        ? 'linear-gradient(90deg, rgba(110,231,183,0.3), rgba(16,185,129,0.3) 45%, rgba(16,185,129,0))'
+                        : 'linear-gradient(180deg, rgba(110,231,183,0.3), rgba(16,185,129,0.3) 45%, rgba(16,185,129,0))',
+                    boxShadow: '0 0 8px rgba(16,185,129,0.18)',
+                    opacity: 0,
+                    '--pg-dx': b.d === 'h' ? `-${dist}px` : '0px',
+                    '--pg-dy': b.d === 'v' ? `-${dist}px` : '0px',
+                    animation: `pg-comet ${dur}ms linear ${delay}ms infinite`,
+                    animationPlayState: inProgress ? 'running' : 'paused',
+                  } as React.CSSProperties}
+                />
+              );
+            })}
+          </div>
+
+          {/* Right-side ecosystem ring — slow rotation, upright labelled nodes, fixed centre text */}
+          <div
+            className="absolute right-[16%] top-[78%] -translate-y-1/2"
+            style={{
+              width: 'min(46vh, 40vw)',
+              height: 'min(46vh, 40vw)',
+              opacity: inProgress ? 1 : 0,
+              transform: inProgress
+                ? 'translateY(-50%) scale(1)'
+                : 'translateY(-50%) scale(0.9)',
+              transition:
+                'opacity 800ms ease 500ms, transform 900ms cubic-bezier(0.22,1,0.36,1) 500ms',
+            }}
+          >
+            {/* Rotating layer (ring + orbiting nodes) */}
+            <div
+              className="absolute inset-0"
+              style={{
+                animation: 'pg-spin 48s linear infinite',
+                animationPlayState: inProgress ? 'running' : 'paused',
+              }}
+            >
+              {/* Orbit circles */}
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{ border: '1px dashed rgba(255,255,255,0.14)' }}
+              />
+              <div
+                className="absolute rounded-full"
+                style={{
+                  inset: '14%',
+                  border: '1px solid rgba(16,185,129,0.12)',
+                }}
+              />
+
+              {/* Nodes evenly spaced around the ring */}
+              {PG_NODES.map((n, i) => {
+                const ang = ((-90 + i * (360 / PG_NODES.length)) * Math.PI) / 180;
+                const x = 50 + 50 * Math.cos(ang);
+                const y = 50 + 50 * Math.sin(ang);
+                return (
+                  <div
+                    key={n.label}
+                    className="absolute"
+                    style={{ left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)' }}
+                  >
+                    {/* Counter-rotation keeps the icon + label upright */}
+                    <div
+                      className="flex flex-col items-center gap-2"
+                      style={{
+                        animation: 'pg-spin-rev 48s linear infinite',
+                        animationPlayState: inProgress ? 'running' : 'paused',
+                      }}
+                    >
+                      <div
+                        className="flex items-center justify-center rounded-full backdrop-blur-sm"
+                        style={{
+                          width: 'clamp(44px, 4vw, 60px)',
+                          height: 'clamp(44px, 4vw, 60px)',
+                          background: 'rgba(16,185,129,0.08)',
+                          border: '1px solid rgba(16,185,129,0.4)',
+                          color: '#6ee7b7',
+                          boxShadow: '0 0 20px rgba(16,185,129,0.12)',
+                        }}
+                      >
+                        <RingIcon name={n.icon} />
+                      </div>
+                      <span
+                        className="whitespace-nowrap font-light"
+                        style={{
+                          fontSize: 'clamp(0.7rem, 0.9vw, 0.9rem)',
+                          color: 'rgba(255,255,255,0.72)',
+                          letterSpacing: '0.02em',
+                        }}
+                      >
+                        {n.label}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Fixed centre text */}
+            <div
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center"
+              style={{ maxWidth: '54%' }}
+            >
+              <p
+                className="whitespace-nowrap font-light"
+                style={{
+                  fontSize: 'clamp(0.8rem, 1vw, 1rem)',
+                  lineHeight: 1.4,
+                  color: 'rgba(255,255,255,0.5)',
+                }}
+              >
+                Connected through
+              </p>
+              <p
+                className="whitespace-nowrap font-normal"
+                style={{
+                  fontSize: 'clamp(1.05rem, 1.6vw, 1.6rem)',
+                  lineHeight: 1.3,
+                  color: '#ffffff',
+                }}
+              >
+                one digital ecosystem.
+              </p>
+            </div>
+          </div>
+
+          {/* Top tagline — blur → focus, fade, rise */}
+          <div className="absolute inset-x-0 top-0 flex items-start justify-center px-6 pt-16 md:pt-24">
+            <p
+              className="text-center font-light tracking-tight"
+              style={{
+                fontSize: 'clamp(1.35rem, 2.5vw, 2.15rem)',
+                opacity: inProgress ? 1 : 0,
+                filter: inProgress ? 'blur(0px)' : 'blur(10px)',
+                transform: inProgress ? 'translateY(0)' : 'translateY(24px)',
+                transition:
+                  'opacity 700ms ease 250ms, filter 700ms ease 250ms, transform 800ms cubic-bezier(0.22,1,0.36,1) 250ms',
+              }}
+            >
+              <span style={{ color: 'rgba(255,255,255,0.5)' }}>{PG_HIGHLIGHT}</span>
+            </p>
+          </div>
+
+          {/* Center-left headline + body, left-aligned — blur → focus, fade, rise */}
+          <div
+            className="absolute left-0 top-[68%] -translate-y-1/2 max-w-[38rem] pl-12 md:pl-20"
+            style={{
+              opacity: inProgress ? 1 : 0,
+              filter: inProgress ? 'blur(0px)' : 'blur(10px)',
+              transform: inProgress
+                ? 'translateY(-50%) translateX(0)'
+                : 'translateY(-50%) translateX(-24px)',
+              transition:
+                'opacity 700ms ease 400ms, filter 700ms ease 400ms, transform 800ms cubic-bezier(0.22,1,0.36,1) 400ms',
+            }}
+          >
+            <h3
+              className="text-left font-light tracking-tight text-white"
+              style={{ fontSize: 'clamp(1.5rem, 2.8vw, 2.6rem)', lineHeight: 1.15 }}
+            >
+              Designed Around the Way Deeniyath Works
+            </h3>
+            <p
+              className="mt-5 text-left font-light"
+              style={{
+                fontSize: 'clamp(0.9rem, 1.1vw, 1.1rem)',
+                lineHeight: 1.6,
+                color: 'rgba(255,255,255,0.55)',
+              }}
+            >
+              This is not intended to be a generic education software adapted to
+              Deeniyath. The platform is being designed around Deeniyath's
+              organizational structure, academic practices and the practical
+              workflows of institutions and Muallims.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Content - Section 6: Developer / build (step 9) — dark golden-ratio blueprint */}
+      {showSection2 && (
+        <div
+          className="absolute inset-0 z-40"
+          style={{
+            opacity: inDev ? 1 : 0,
+            pointerEvents: inDev ? 'auto' : 'none',
+            transition: 'opacity 700ms ease',
+          }}
+        >
+          {/* Base */}
+          <div className="absolute inset-0" style={{ backgroundColor: '#0A1811' }} />
+          {/* Soft centre glow */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(ellipse 70% 60% at 62% 50%, rgba(16,185,129,0.10), transparent 70%)',
+            }}
+          />
+
+          {/* Blueprint geometry — golden spiral, concentric circles, crosshairs */}
+          <svg
+            className="absolute inset-0 h-full w-full"
+            viewBox="0 0 1440 900"
+            preserveAspectRatio="xMidYMid slice"
+            style={{
+              opacity: inDev ? 1 : 0,
+              transform: inDev ? 'scale(1)' : 'scale(1.06)',
+              transformOrigin: '62% 50%',
+              transition:
+                'opacity 1000ms ease 150ms, transform 1200ms cubic-bezier(0.22,1,0.36,1) 150ms',
+            }}
+          >
+            <g fill="none" stroke="rgba(255,255,255,0.09)" strokeWidth="1">
+              <circle cx="910" cy="470" r="400" />
+              <circle cx="910" cy="470" r="250" />
+              <circle cx="910" cy="470" r="150" />
+              <line x1="470" y1="0" x2="470" y2="900" />
+              <line x1="0" y1="450" x2="1440" y2="450" stroke="rgba(255,255,255,0.05)" />
+            </g>
+            <path d={DEV_SPIRAL} fill="none" stroke="rgba(110,231,183,0.16)" strokeWidth="1.2" />
+            {/* Bottom-left quarter arc */}
+            <circle cx="120" cy="860" r="150" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
+            {/* Crosshair ticks */}
+            <g stroke="rgba(255,255,255,0.22)" strokeWidth="1">
+              {DEV_TICKS.map(([x, y], i) => (
+                <g key={`dt-${i}`}>
+                  <line x1={x - 6} y1={y} x2={x + 6} y2={y} />
+                  <line x1={x} y1={y - 6} x2={x} y2={y + 6} />
+                </g>
+              ))}
+            </g>
+          </svg>
+
+          {/* Left darker panel (very subtle) */}
+          <div
+            className="absolute left-0 top-0 h-full"
+            style={{
+              width: '32%',
+              background: 'linear-gradient(to right, rgba(0,0,0,0.35), transparent)',
+            }}
+          />
+
+          {/* Centre content */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+            {/* Label */}
+            <span
+              className="font-medium uppercase"
+              style={{
+                fontSize: 'clamp(0.65rem, 0.75vw, 0.8rem)',
+                letterSpacing: '0.28em',
+                color: 'rgba(255,255,255,0.45)',
+                opacity: inDev ? 1 : 0,
+                transform: inDev ? 'translateY(0)' : 'translateY(16px)',
+                transition:
+                  'opacity 600ms ease 350ms, transform 700ms cubic-bezier(0.22,1,0.36,1) 350ms',
+              }}
+            >
+              {DEV_LABEL}
+            </span>
+
+            {/* Body */}
+            <p
+              className="mt-6 font-light tracking-tight"
+              style={{
+                maxWidth: '52rem',
+                fontSize: 'clamp(1.15rem, 2.2vw, 2rem)',
+                lineHeight: 1.35,
+                color: 'rgba(255,255,255,0.82)',
+                opacity: inDev ? 1 : 0,
+                filter: inDev ? 'blur(0px)' : 'blur(12px)',
+                transform: inDev ? 'translateY(0)' : 'translateY(26px)',
+                transition:
+                  'opacity 800ms ease 450ms, filter 800ms ease 450ms, transform 900ms cubic-bezier(0.22,1,0.36,1) 450ms',
+              }}
+            >
+              {DEV_BODY}
+            </p>
+
+            {/* Emphasis line */}
+            <p
+              className="mt-24 font-medium text-white"
+              style={{
+                fontSize: 'clamp(1rem, 1.7vw, 1.45rem)',
+                opacity: inDev ? 1 : 0,
+                transform: inDev ? 'translateY(0)' : 'translateY(18px)',
+                transition:
+                  'opacity 700ms ease 600ms, transform 800ms cubic-bezier(0.22,1,0.36,1) 600ms',
+              }}
+            >
+              {DEV_EMPHASIS}
+            </p>
+
+            {/* Auto-scrolling question pills */}
+            <div
+              className="relative mt-6 w-full overflow-hidden"
+              style={{
+                maxWidth: '92vw',
+                maskImage:
+                  'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
+                WebkitMaskImage:
+                  'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
+                opacity: inDev ? 1 : 0,
+                transition: 'opacity 700ms ease 800ms',
+              }}
+            >
+              <div
+                className="flex w-max"
+                style={{
+                  animation: 'pg-marquee 26s linear infinite',
+                  animationPlayState: inDev ? 'running' : 'paused',
+                }}
+              >
+                {[0, 1].map((copy) => (
+                  <div key={copy} className="flex shrink-0 items-center gap-4 pr-4" aria-hidden={copy === 1}>
+                    {DEV_QUESTIONS.map((q) => (
+                      <span
+                        key={q}
+                        className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full font-medium text-white"
+                        style={{
+                          padding: '0.85rem 1.6rem',
+                          fontSize: 'clamp(0.85rem, 1vw, 1rem)',
+                          background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid rgba(255,255,255,0.18)',
+                          backdropFilter: 'blur(6px)',
+                        }}
+                      >
+                        {q}
+                      </span>
+                    ))}
+                    {/* Loop-boundary diamond — marks the end of the set before it repeats */}
+                    <span
+                      className="shrink-0"
+                      style={{
+                        width: '7px',
+                        height: '7px',
+                        background: '#ffffff',
+                        transform: 'rotate(45deg)',
+                        boxShadow: '0 0 8px rgba(255,255,255,0.5)',
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );

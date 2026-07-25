@@ -105,6 +105,30 @@ body {
   -webkit-mask-image: radial-gradient(ellipse at center, transparent 40%, black 85%);
 }
 
+/* Green accent "comet" travelling along a grid line, looping */
+@keyframes pg-comet {
+  0%   { opacity: 0; transform: translate(0px, 0px); }
+  12%  { opacity: 1; }
+  68%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--pg-dx, 0px), var(--pg-dy, 0px)); }
+}
+
+/* Ecosystem ring — slow continuous rotation + counter-rotation to keep nodes upright */
+@keyframes pg-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes pg-spin-rev {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+/* Horizontal auto-scrolling marquee (participation question pills) */
+@keyframes pg-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
 /* Dark grid variant for the white Capabilities section */
 .grid-lines--dark {
   background-image:
