@@ -13,14 +13,14 @@ const TEXT_LINE_2_PART_1 = 'Deeniyat Designed To Empower';
 const LONGEST_WORD = ROTATING_WORDS.reduce((a, b) => (a.length > b.length ? a : b));
 
 // Section 2 content
-const SECTION_2_EYEBROW = 'Building a Better Digital Foundation for Deeniyath';
-const SECTION_2_TITLE = 'Why Deeniyath Digital Platform?';
-const SECTION_2_BODY = 'As Deeniyath grows, the way we manage institutions, academics, learning, communication and organizational activities must grow with it.';
-const SECTION_2_BODY_2 = 'The Deeniyath Digital Platform is being developed to simplify everyday processes, improve coordination across organizational levels, and provide timely access to information for everyone involved in the educational ecosystem.';
+const SECTION_2_EYEBROW = 'Building a Better Digital Foundation for Deeniyat';
+const SECTION_2_TITLE = 'Why Deeniyat Digital Platform?';
+const SECTION_2_BODY = 'As Deeniyat grows, the way we manage institutions, academics, learning, communication and organizational activities must grow with it.';
+const SECTION_2_BODY_2 = 'The Deeniyat Digital Platform is being developed to simplify everyday processes, improve coordination across organizational levels, and provide timely access to information for everyone involved in the educational ecosystem.';
 
 // Section 3 (Ecosystem) content — third scroll step
-const ECO_HEADLINE = 'One Connected Deeniyath Ecosystem';
-const ECO_SUB = 'One platform connecting every level of the Deeniyath educational network.';
+const ECO_HEADLINE = 'One Connected Deeniyat Ecosystem';
+const ECO_SUB = 'One platform connecting every level of the Deeniyat educational network.';
 // Flowchart tree: root → { Institution ERP with LMS → (Teacher App, Parent App), Public Services }
 const ECO_ROOT = {
   title: 'Central Governance Board ERP',
@@ -37,7 +37,7 @@ const ECO_L2 = [
 const ECO_TOTAL_STEPS = 7;
 
 // Section 4 (Capabilities) — horizontal filmstrip, steps 3–7
-const CAP_HEADLINE = 'Bringing Deeniyath Operations Together';
+const CAP_HEADLINE = 'Bringing Deeniyat Operations Together';
 const CAP_CARDS = [
   { title: 'Administration & Governance', sub: 'Institution, zone, student, teacher and organizational management through a structured central platform.', img: '/capablities/Administration & Governance.png' },
   { title: 'Academics & Learning', sub: 'Academic structures, learning materials, assignments, assessments, examinations and student progress.', img: '/capablities/Academics & Learning.png' },
@@ -71,16 +71,16 @@ const CAP_LAST_STEP = 7; // last capability frame step (2 = ecosystem, 3..7 = ca
 
 // Section 5 (Progress statement) — step 8, dark charcoal with animated blueprint grid
 const PROGRESS_STEP = 8;
-// Technology partner — step 9, left text swaps within the "Built for Deeniyath" section
+// Technology partner — step 9, left text swaps within the "Built for Deeniyat" section
 const PARTNER_STEP = 9;
 const PARTNER_HEAD = 'Technology Partner';
 const PARTNER_BODY =
-  'Developed in partnership with Techno Alliance, bringing nearly three decades of experience, a visionary legacy, and proven expertise in technology and educational solutions.';
+  'Developing in partnership with Techno Alliance, bringing nearly three decades of experience, a visionary legacy, and proven expertise in technology and educational solutions.';
 // Section 6 (Developer / build) — step 10, dark with golden-ratio blueprint geometry
 const DEV_STEP = 10;
 const DEV_LABEL = 'PARTICIPATION';
 const DEV_BODY =
-  'The people who manage institutions and teach students every day understand the practical needs of Deeniyath best. As the platform develops, feedback from management teams, Muallims and other stakeholders will help us understand existing challenges and identify opportunities for improvement.';
+  'The people who manage institutions and teach students every day understand the practical needs of Deeniyat best. As the platform develops, feedback from management teams, Muallims and other stakeholders will help us understand existing challenges and identify opportunities for improvement.';
 const DEV_EMPHASIS = 'Your Experience Matters.';
 const DEV_QUESTIONS = [
   'What takes too much time today?',
@@ -113,7 +113,7 @@ const NEXT_STEP = 11; // bodyIndex clamp ceiling
 const S7_LABEL = 'A New Digital Journey Begins';
 const S7_BODY =
   'Technology will continue to evolve. Our purpose remains the same — supporting education, institutions and the people who serve them.';
-const S7_TITLE = 'Deeniyath Digital Platform';
+const S7_TITLE = 'Deeniyat Digital Platform';
 // Rotating headline cycles through these phrases in a loop (same letter-scramble as Section 1)
 const S7_ROTATING = [
   'Connecting institutions.',
@@ -185,7 +185,7 @@ function TraceDots({ d, dur, playing, dim = 1 }: { d: string; dur: number; playi
     </>
   );
 }
-const PG_HIGHLIGHT = 'BUILT FOR DEENIYATH';
+const PG_HIGHLIGHT = 'BUILT FOR DEENIYAT';
 const PG_CELL = 96; // grid cell size in px
 const PG_V_LINES = 10; // vertical blueprint lines (anchored to the right edge)
 const PG_H_LINES = 13; // horizontal blueprint lines
@@ -1068,7 +1068,7 @@ export default function Hero() {
               className="text-left font-light tracking-tight text-white"
               style={{ fontSize: 'clamp(1.5rem, 2.8vw, 2.6rem)', lineHeight: 1.15 }}
             >
-              Designed Around the Way Deeniyath Works
+              Designed Around the Way Deeniyat Works
             </h3>
             <p
               className="mt-5 text-left font-light"
@@ -1079,7 +1079,7 @@ export default function Hero() {
               }}
             >
               This is not intended to be a generic education software adapted to
-              Deeniyath. The platform is being designed around Deeniyath's
+              Deeniyat. The platform is being designed around Deeniyat's
               organizational structure, academic practices and the practical
               workflows of institutions and Muallims.
             </p>
@@ -1319,7 +1319,7 @@ export default function Hero() {
           {/* Green base */}
           <div className="absolute inset-0" style={{ backgroundColor: '#0A1811' }} />
 
-          {/* Animated blueprint grid — same as the "Built for Deeniyath" section */}
+          {/* Animated blueprint grid — same as the "Built for Deeniyat" section */}
           <div
             className="absolute inset-0"
             style={{
