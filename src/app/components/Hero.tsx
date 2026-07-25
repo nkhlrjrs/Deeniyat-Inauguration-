@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import ShinyText from './ShinyText';
+import GridPathAnimator from './GridPathAnimator';
 
 const ROTATING_WORDS = ['Governance', 'Education', 'Administration', 'Communication', 'Collaboration'];
 
@@ -10,6 +11,10 @@ const TEXT_LINE_2_PART_1 = 'Deeniyat Designed To Empower';
 
 // Find the longest word for fixed width
 const LONGEST_WORD = ROTATING_WORDS.reduce((a, b) => (a.length > b.length ? a : b));
+
+// Section 2 content
+const SECTION_2_TITLE = 'Why Deeniyath Digital Platform?';
+const SECTION_2_BODY = 'The Deeniyat Digital Platform brings every operational, academic, and administrative responsibility together into one centralized ecosystem—creating a seamless flow of information, collaboration, and decision-making across the organization.';
 
 export default function Hero() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -23,6 +28,12 @@ export default function Hero() {
   const [line1Visible, setLine1Visible] = useState<Set<number>>(new Set());
   const [line2Visible, setLine2Visible] = useState<Set<number>>(new Set());
   const [buttonVisible, setButtonVisible] = useState(false);
+
+  // Section 2 states
+  const [showSection2, setShowSection2] = useState(false);
+  const [section2TitleVisible, setSection2TitleVisible] = useState<Set<number>>(new Set());
+  const [section2BodyVisible, setSection2BodyVisible] = useState<Set<number>>(new Set());
+  const [bgTransition, setBgTransition] = useState(false);
 
   useEffect(() => {
     // Initial page load animation
@@ -56,8 +67,8 @@ export default function Hero() {
   }, []);
 
   useEffect(() => {
-    // Only start rotating word animation after initial animation is done
-    if (!initialAnimDone) return;
+    // Only start rotating word animation after initial animation is done AND not showing section 2
+    if (!initialAnimDone || showSection2) return;
 
     const targetWord = ROTATING_WORDS[currentWordIndex];
     setCurrentWord(targetWord);
@@ -106,7 +117,44 @@ export default function Hero() {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [currentWordIndex, initialAnimDone]);
+  }, [currentWordIndex, initialAnimDone, showSection2]);
+
+  // Handle transition to Section 2
+  const handleBeginExperience = async () => {
+    // Fade out section 1 elements
+    setLine1Visible(new Set());
+    setLine2Visible(new Set());
+    setVisibleLetters(new Set());
+    setButtonVisible(false);
+
+    // Start background transition
+    setBgTransition(true);
+
+    // Wait for fade out
+    await delay(600);
+
+    // Show section 2
+    setShowSection2(true);
+
+    // Animate Section 2 title
+    const titleIndices = Array.from({ length: SECTION_2_TITLE.length }, (_, i) => i);
+    const titleShuffled = shuffleArray([...titleIndices]);
+    for (let i = 0; i < titleShuffled.length; i++) {
+      await delay(50 + Math.random() * 30);
+      setSection2TitleVisible(prev => new Set([...prev, titleShuffled[i]]));
+    }
+
+    // Pause before body
+    await delay(300);
+
+    // Animate Section 2 body
+    const bodyIndices = Array.from({ length: SECTION_2_BODY.length }, (_, i) => i);
+    const bodyShuffled = shuffleArray([...bodyIndices]);
+    for (let i = 0; i < bodyShuffled.length; i++) {
+      await delay(30 + Math.random() * 20);
+      setSection2BodyVisible(prev => new Set([...prev, bodyShuffled[i]]));
+    }
+  };
 
   return (
     <section className="relative h-screen w-full overflow-hidden flex items-end justify-center pb-32">
@@ -116,92 +164,147 @@ export default function Hero() {
         loop
         muted
         playsInline
-        className="absolute inset-0 w-full h-full object-cover"
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+          bgTransition ? 'opacity-0' : 'opacity-100'
+        }`}
       >
         <source src="/Hero/deeniyat Intro video (1).mov" type="video/mp4" />
       </video>
 
+      {/* Solid Background for Section 2 */}
+      <div
+        className={`absolute inset-0 transition-opacity duration-700 ${
+          bgTransition ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{ backgroundColor: '#0A1811' }}
+      />
+
       {/* Dark Overlay for better text readability */}
-      <div className="absolute inset-0 bg-black/40" />
+      <div className={`absolute inset-0 bg-black/40 transition-opacity duration-700 ${
+        bgTransition ? 'opacity-0' : 'opacity-100'
+      }`} />
 
       {/* Black Gradient Overlay - bottom to top */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+      <div className={`absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent transition-opacity duration-700 ${
+        bgTransition ? 'opacity-0' : 'opacity-100'
+      }`} />
 
       {/* Grid Lines Overlay */}
       <div className="grid-lines" />
 
-      {/* Content */}
-      <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-white mb-12 leading-tight">
-          {/* Line 1 with animation */}
-          <div className="whitespace-nowrap">
-            {TEXT_LINE_1.split('').map((letter, index) => (
-              <AnimatedLetter
-                key={`line1-${index}`}
-                letter={letter}
-                isVisible={line1Visible.has(index)}
-                delay={0}
+      {/* Random Grid Path Animation */}
+      <GridPathAnimator />
+
+      {/* Content - Section 1 */}
+      {!showSection2 && (
+        <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-white mb-12 leading-tight">
+            {/* Line 1 with animation */}
+            <div className="whitespace-nowrap">
+              {TEXT_LINE_1.split('').map((letter, index) => (
+                <AnimatedLetter
+                  key={`line1-${index}`}
+                  letter={letter}
+                  isVisible={line1Visible.has(index)}
+                  delay={0}
+                />
+              ))}
+            </div>
+            {/* Line 2 with animation */}
+            <div className="whitespace-nowrap flex items-center justify-center gap-2">
+              <span>
+                {TEXT_LINE_2_PART_1.split('').map((letter, index) => (
+                  <AnimatedLetter
+                    key={`line2-${index}`}
+                    letter={letter}
+                    isVisible={line2Visible.has(index)}
+                    delay={0}
+                  />
+                ))}
+              </span>
+              <span className="inline-block w-[270px] md:w-[320px] text-left">
+                {currentWord.split('').map((letter, index) => (
+                  <AnimatedLetter
+                    key={`${currentWordIndex}-${index}`}
+                    letter={letter}
+                    isVisible={visibleLetters.has(index)}
+                    delay={0}
+                  />
+                ))}
+              </span>
+            </div>
+          </h1>
+
+          {/* CTA Button */}
+          <button
+            onClick={handleBeginExperience}
+            className={`group relative px-8 py-4 bg-white/10 backdrop-blur-md border border-white/30 font-light text-lg rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-white/20 ${buttonVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} gradient-border-button`}
+          >
+            {/* Gradient Border */}
+            <div className="gradient-border" />
+            {/* Starfield Effect - Sparkling dots inside button */}
+            <span className="starfield absolute inset-0 pointer-events-none z-0">
+              <span className="star" style={{ '--x': '10%', '--y': '15%', '--delay': '0s' } as React.CSSProperties} />
+              <span className="star" style={{ '--x': '85%', '--y': '20%', '--delay': '0.5s' } as React.CSSProperties} />
+              <span className="star" style={{ '--x': '25%', '--y': '70%', '--delay': '1s' } as React.CSSProperties} />
+              <span className="star" style={{ '--x': '75%', '--y': '75%', '--delay': '1.5s' } as React.CSSProperties} />
+              <span className="star" style={{ '--x': '45%', '--y': '30%', '--delay': '2s' } as React.CSSProperties} />
+              <span className="star" style={{ '--x': '60%', '--y': '60%', '--delay': '0.3s' } as React.CSSProperties} />
+              <span className="star" style={{ '--x': '15%', '--y': '45%', '--delay': '0.8s' } as React.CSSProperties} />
+              <span className="star" style={{ '--x': '90%', '--y': '50%', '--delay': '1.3s' } as React.CSSProperties} />
+            </span>
+
+            <span className="relative z-10 flex items-center gap-3 text-white uppercase">
+              <ShinyText
+                text="Begin the Experience"
+                speed={2.5}
+                color="#e0e0e0"
+                shineColor="#ffffff"
+                spread={150}
+                direction="right"
               />
-            ))}
-          </div>
-          {/* Line 2 with animation */}
-          <div className="whitespace-nowrap flex items-center justify-center gap-2">
-            <span>
-              {TEXT_LINE_2_PART_1.split('').map((letter, index) => (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/10 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-white/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-0" />
+          </button>
+        </div>
+      )}
+
+      {/* Content - Section 2 */}
+      {showSection2 && (
+        <div className="absolute inset-0 flex items-center justify-center z-10 px-4">
+          <div className="text-center max-w-4xl mx-auto">
+            {/* Title with gradient text */}
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-light mb-8 leading-tight">
+              <span className="bg-gradient-to-r from-white via-white to-gray-300 bg-clip-text text-transparent">
+                {SECTION_2_TITLE.split('').map((letter, index) => (
+                  <AnimatedLetter
+                    key={`s2-title-${index}`}
+                    letter={letter}
+                    isVisible={section2TitleVisible.has(index)}
+                    delay={0}
+                  />
+                ))}
+              </span>
+            </h2>
+
+            {/* Body text */}
+            <p className="text-xl md:text-2xl lg:text-3xl font-light leading-relaxed text-white/90 max-w-[900px] mx-auto">
+              {SECTION_2_BODY.split('').map((letter, index) => (
                 <AnimatedLetter
-                  key={`line2-${index}`}
+                  key={`s2-body-${index}`}
                   letter={letter}
-                  isVisible={line2Visible.has(index)}
+                  isVisible={section2BodyVisible.has(index)}
                   delay={0}
                 />
               ))}
-            </span>
-            <span className="inline-block w-[270px] md:w-[320px] text-left">
-              {currentWord.split('').map((letter, index) => (
-                <AnimatedLetter
-                  key={`${currentWordIndex}-${index}`}
-                  letter={letter}
-                  isVisible={visibleLetters.has(index)}
-                  delay={0}
-                />
-              ))}
-            </span>
+            </p>
           </div>
-        </h1>
-
-        {/* CTA Button */}
-        <button className={`group relative px-8 py-4 bg-white/10 backdrop-blur-md border border-white/30 font-light text-lg rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-white/20 ${buttonVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} gradient-border-button`}>
-          {/* Gradient Border */}
-          <div className="gradient-border" />
-          {/* Starfield Effect - Sparkling dots inside button */}
-          <span className="starfield absolute inset-0 pointer-events-none z-0">
-            <span className="star" style={{ '--x': '10%', '--y': '15%', '--delay': '0s' } as React.CSSProperties} />
-            <span className="star" style={{ '--x': '85%', '--y': '20%', '--delay': '0.5s' } as React.CSSProperties} />
-            <span className="star" style={{ '--x': '25%', '--y': '70%', '--delay': '1s' } as React.CSSProperties} />
-            <span className="star" style={{ '--x': '75%', '--y': '75%', '--delay': '1.5s' } as React.CSSProperties} />
-            <span className="star" style={{ '--x': '45%', '--y': '30%', '--delay': '2s' } as React.CSSProperties} />
-            <span className="star" style={{ '--x': '60%', '--y': '60%', '--delay': '0.3s' } as React.CSSProperties} />
-            <span className="star" style={{ '--x': '15%', '--y': '45%', '--delay': '0.8s' } as React.CSSProperties} />
-            <span className="star" style={{ '--x': '90%', '--y': '50%', '--delay': '1.3s' } as React.CSSProperties} />
-          </span>
-
-          <span className="relative z-10 flex items-center gap-3 text-white uppercase">
-            <ShinyText
-              text="Begin the Experience"
-              speed={2.5}
-              color="#e0e0e0"
-              shineColor="#ffffff"
-              spread={150}
-              direction="right"
-            />
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </span>
-          <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/10 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <div className="absolute inset-0 bg-white/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-0" />
-        </button>
-      </div>
+        </div>
+      )}
     </section>
   );
 }
