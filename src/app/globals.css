@@ -104,3 +104,10 @@ body {
   mask-image: radial-gradient(ellipse at center, transparent 40%, black 85%);
   -webkit-mask-image: radial-gradient(ellipse at center, transparent 40%, black 85%);
 }
+
+/* Dark grid variant for the white Capabilities section */
+.grid-lines--dark {
+  background-image:
+    linear-gradient(to right, rgba(10, 24, 17, 0.10) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(10, 24, 17, 0.10) 1px, transparent 1px);
+}
