@@ -136,23 +136,23 @@ export default function Hero() {
     // Show section 2
     setShowSection2(true);
 
-    // Animate Section 2 title
+    // Animate Section 2 title and body simultaneously - no delays
     const titleIndices = Array.from({ length: SECTION_2_TITLE.length }, (_, i) => i);
     const titleShuffled = shuffleArray([...titleIndices]);
-    for (let i = 0; i < titleShuffled.length; i++) {
-      await delay(50 + Math.random() * 30);
-      setSection2TitleVisible(prev => new Set([...prev, titleShuffled[i]]));
-    }
 
-    // Pause before body
-    await delay(300);
+    const bodyWords = SECTION_2_BODY.split(' ');
+    const wordIndices = Array.from({ length: bodyWords.length }, (_, i) => i);
+    const wordShuffled = shuffleArray([...wordIndices]);
 
-    // Animate Section 2 body
-    const bodyIndices = Array.from({ length: SECTION_2_BODY.length }, (_, i) => i);
-    const bodyShuffled = shuffleArray([...bodyIndices]);
-    for (let i = 0; i < bodyShuffled.length; i++) {
-      await delay(30 + Math.random() * 20);
-      setSection2BodyVisible(prev => new Set([...prev, bodyShuffled[i]]));
+    // Animate title and body in parallel with minimal delay
+    for (let i = 0; i < Math.max(titleShuffled.length, wordShuffled.length); i++) {
+      await delay(30);
+      if (i < titleShuffled.length) {
+        setSection2TitleVisible(prev => new Set([...prev, titleShuffled[i]]));
+      }
+      if (i < wordShuffled.length) {
+        setSection2BodyVisible(prev => new Set([...prev, wordShuffled[i]]));
+      }
     }
   };
 
@@ -276,7 +276,7 @@ export default function Hero() {
       {/* Content - Section 2 */}
       {showSection2 && (
         <div className="absolute inset-0 flex items-center justify-center z-10 px-4">
-          <div className="text-center max-w-4xl mx-auto">
+          <div className="text-center max-w-[1600px] mx-auto">
             {/* Title with gradient text */}
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-light mb-8 leading-tight">
               <span className="bg-gradient-to-r from-white via-white to-gray-300 bg-clip-text text-transparent">
@@ -292,13 +292,12 @@ export default function Hero() {
             </h2>
 
             {/* Body text */}
-            <p className="text-xl md:text-2xl lg:text-3xl font-light leading-relaxed text-white/90 max-w-[900px] mx-auto">
-              {SECTION_2_BODY.split('').map((letter, index) => (
-                <AnimatedLetter
-                  key={`s2-body-${index}`}
-                  letter={letter}
-                  isVisible={section2BodyVisible.has(index)}
-                  delay={0}
+            <p className="text-2xl md:text-3xl lg:text-4xl font-light leading-relaxed text-white/90 max-w-[1600px] mx-auto">
+              {SECTION_2_BODY.split(' ').map((word, wordIndex) => (
+                <AnimatedWord
+                  key={`s2-word-${wordIndex}`}
+                  word={word}
+                  isVisible={section2BodyVisible.has(wordIndex)}
                 />
               ))}
             </p>
@@ -321,6 +320,21 @@ function AnimatedLetter({ letter, isVisible, delay }: { letter: string; isVisibl
       style={{ transitionDelay: `${delay}ms` }}
     >
       {letter === ' ' ? ' ' : letter}
+    </span>
+  );
+}
+
+// Animated Word Component
+function AnimatedWord({ word, isVisible }: { word: string; isVisible: boolean }) {
+  return (
+    <span
+      className={`inline-block transition-all duration-500 ease-out mr-[0.25em] ${
+        isVisible
+          ? 'opacity-100 blur-0 translate-y-0'
+          : 'opacity-0 blur-[4px] translate-y-2'
+      }`}
+    >
+      {word}
     </span>
   );
 }
