@@ -70,6 +70,14 @@ const CAP_FRAMES: { left: { kind: 'text' } | { kind: 'card'; i: number }; right:
   { left: { kind: 'card', i: 5 }, right: { kind: 'card', i: 6 } },
   { left: { kind: 'card', i: 7 }, right: { kind: 'text' } },
 ];
+// Phone-only regrouping — 3 cards visible per screen (desktop keeps CAP_FRAMES 2-up).
+// Intro text kept; the trailing "Bringing Deeniyat Operations Together" text screen is dropped on phone.
+const CAP_FRAMES_MOBILE: ({ kind: 'text' } | { kind: 'cards'; is: number[] })[] = [
+  { kind: 'text' },
+  { kind: 'cards', is: [0, 1, 2] },
+  { kind: 'cards', is: [3, 4, 5] },
+  { kind: 'cards', is: [6, 7] },
+];
 const CAP_LAST_STEP = 7; // last capability frame step (2 = ecosystem, 3..7 = capability frames)
 
 // Section 5 (Progress statement) — step 8, dark charcoal with animated blueprint grid
@@ -468,6 +476,8 @@ export default function Hero() {
   // Capabilities filmstrip (steps 3–7)
   const inCaps = bodyIndex >= 3;
   const capFrame = Math.min(CAP_FRAMES.length - 1, Math.max(0, bodyIndex - 3));
+  // Phone carousel has fewer frames (no trailing text) — clamp so the last step rests on the final cards
+  const capFrameMobile = Math.min(CAP_FRAMES_MOBILE.length - 1, capFrame);
   // Progress statement (step 8) — charcoal overlay sits above the white capabilities layer
   const inProgress = bodyIndex >= PROGRESS_STEP;
   // Technology partner (step 9) — left text swaps within the progress layer
@@ -528,7 +538,7 @@ export default function Hero() {
         loop
         muted
         playsInline
-        className={`absolute left-1/2 top-1/2 h-auto w-auto min-h-full min-w-full max-w-none -translate-x-1/2 -translate-y-1/2 object-cover transition-opacity duration-700 ${
+        className={`absolute inset-0 h-full w-full object-cover max-md:inset-auto max-md:left-1/2 max-md:top-1/2 max-md:h-auto max-md:w-auto max-md:min-h-full max-md:min-w-full max-md:max-w-none max-md:-translate-x-1/2 max-md:-translate-y-1/2 transition-opacity duration-700 ${
           bgTransition ? 'opacity-0' : 'opacity-100'
         }`}
       >
@@ -561,7 +571,7 @@ export default function Hero() {
 
       {/* Content - Section 1 */}
       {!showSection2 && (
-        <div className="relative z-10 text-center px-4 w-full max-w-5xl mx-auto">
+        <div className="relative z-10 text-center px-6 md:px-4 w-full max-w-5xl mx-auto">
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-white mb-8 md:mb-12 leading-tight">
             {/* Line 1 with animation — wraps by whole words on small screens */}
             <div className="lg:whitespace-nowrap">
@@ -776,9 +786,9 @@ export default function Hero() {
             }}
           />
 
-          {/* Horizontal carousel */}
+          {/* Horizontal carousel — desktop / tablet (2-up) */}
           <div
-            className="absolute inset-0 z-20 overflow-hidden"
+            className="absolute inset-0 z-20 overflow-hidden max-md:hidden"
             style={{
               opacity: inCaps ? 1 : 0,
               pointerEvents: inCaps ? 'auto' : 'none',
@@ -814,6 +824,48 @@ export default function Hero() {
                         )}
                       </CapReveal>
                     </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Horizontal carousel — phone (3 cards per screen) */}
+          <div
+            className="absolute inset-0 z-20 overflow-hidden md:hidden"
+            style={{
+              opacity: inCaps ? 1 : 0,
+              pointerEvents: inCaps ? 'auto' : 'none',
+              transition: 'opacity 500ms ease 300ms',
+            }}
+          >
+            <div
+              className="flex h-full"
+              style={{
+                transform: `translateX(calc(-${capFrameMobile} * 100vw))`,
+                transition: 'transform 850ms cubic-bezier(0.7,0,0.2,1)',
+              }}
+            >
+              {CAP_FRAMES_MOBILE.map((frame, fi) => {
+                const active = inCaps && capFrameMobile === fi;
+                return (
+                  <div
+                    key={`cap-mframe-${fi}`}
+                    className="flex h-full w-screen shrink-0 flex-col items-stretch justify-center gap-3 px-6 py-6"
+                  >
+                    {frame.kind === 'text' ? (
+                      <div className="flex h-full items-center justify-center">
+                        <CapReveal show={active} delay={0}>
+                          <CapText />
+                        </CapReveal>
+                      </div>
+                    ) : (
+                      frame.is.map((ci, k) => (
+                        <CapReveal key={ci} show={active} delay={k * 130}>
+                          <CapCard card={CAP_CARDS[ci]} gradient={CAP_GRADIENTS[ci]} compact />
+                        </CapReveal>
+                      ))
+                    )}
                   </div>
                 );
               })}
@@ -1670,15 +1722,19 @@ function CapText() {
 }
 
 // Capabilities card — background image with overlaid headline + subheadline
-function CapCard({ card, gradient }: { card: { title: string; sub: string; img: string }; gradient: string }) {
+function CapCard({ card, gradient, compact = false }: { card: { title: string; sub: string; img: string }; gradient: string; compact?: boolean }) {
   return (
     <div
-      className="relative overflow-hidden rounded-2xl shadow-[0_30px_60px_-25px_rgba(10,24,17,0.55)] aspect-[3/2] w-[min(86vw,42vh)] md:w-[min(40vw,640px,94vh)]"
+      className={
+        compact
+          ? 'relative h-[26dvh] max-h-[220px] w-full overflow-hidden rounded-xl shadow-[0_20px_40px_-25px_rgba(10,24,17,0.55)]'
+          : 'relative overflow-hidden rounded-2xl shadow-[0_30px_60px_-25px_rgba(10,24,17,0.55)] aspect-[3/2] w-[min(86vw,42vh)] md:w-[min(40vw,640px,94vh)]'
+      }
       style={{ background: gradient }}
     >
       {/* background image (gradient above shows while it loads) */}
       <img
-        src={encodeURI(card.img)}
+        src={card.img.split('/').map(encodeURIComponent).join('/')}
         alt=""
         aria-hidden
         draggable={false}
@@ -1689,16 +1745,16 @@ function CapCard({ card, gradient }: { card: { title: string; sub: string; img: 
         className="absolute inset-0"
         style={{ background: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)' }}
       />
-      <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8">
+      <div className={compact ? 'absolute inset-0 flex flex-col justify-end p-4' : 'absolute inset-0 flex flex-col justify-end p-6 md:p-8'}>
         <h4
           className="font-semibold leading-tight text-white"
-          style={{ fontSize: 'clamp(1.25rem, 2vw, 2.1rem)' }}
+          style={{ fontSize: compact ? 'clamp(1rem, 4.4vw, 1.2rem)' : 'clamp(1.25rem, 2vw, 2.1rem)' }}
         >
           {card.title}
         </h4>
         <p
-          className="mt-2 text-white/80 max-w-[92%]"
-          style={{ fontSize: 'clamp(0.8rem, 1vw, 1.05rem)', lineHeight: 1.4 }}
+          className={compact ? 'mt-1 text-white/80 line-clamp-2' : 'mt-2 text-white/80 max-w-[92%]'}
+          style={{ fontSize: compact ? 'clamp(0.72rem, 3.4vw, 0.85rem)' : 'clamp(0.8rem, 1vw, 1.05rem)', lineHeight: 1.4 }}
         >
           {card.sub}
         </p>
